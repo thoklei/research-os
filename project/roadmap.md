@@ -3,83 +3,124 @@
 ## Overview
 This roadmap outlines the experimental plan for validating controllable difficulty generation in ARC-like visual reasoning tasks through compositional latent transformations. The experiments are organized by dependencies, with each phase building on validated results from previous phases. The critical innovation is demonstrating that composition depth and object count parameters enable precise control over task difficulty.
 
-## Phase 0: Minimum Triage Experiment (Days 1-3)
-**CRITICAL: This experiment determines go/no-go for the entire research project**
+## Phase 0: Atomic Image Generation & Encoder Bootstrap (Days 1-7)
+**CRITICAL: This phase addresses the cold-start problem for encoder development**
 
-### Experiment 0.1: Core Hypothesis Validation - Hand-Crafted Encoder
-- **Objective**: Validate that compositional transformations in latent space can produce meaningful difficulty variations with minimal investment
-- **Duration**: 2-3 days maximum
+### Experiment 0.1: Atomic Image Generator Implementation
+- **Objective**: Build a procedural generator for individual ARC-like grids (not input-output pairs) to create training data for the encoder
+- **Duration**: 3-4 days
+- **Rationale**: We cannot use off-the-shelf vision encoders (trained on natural images) for abstract grid reasoning. We need ARC-specific training data to learn an encoder, creating a cold-start problem. The atomic image generator breaks this cycle by producing synthetic ARC-like images procedurally.
 - **Approach**:
-  - Implement minimal hand-crafted encoder φ: Z → Grid (16x16, 10 colors)
-    - Use simple geometric shapes (circle, square, triangle) positioned at latent coordinates
-    - Map each slot (x, y, shape_type, color) directly to grid rendering
-    - Avoid complex learned representations
-  - Implement 3 basic sub-functions in latent space:
-    - `translate(dx, dy)`: Move object position
-    - `rotate_90()`: Rotate object 90 degrees
-    - `scale(factor)`: Change object size
-  - Generate 50 minimal tasks with varying composition depth (n=1, n=2, n=3)
-  - Test with 5-10 human participants (informal pilot)
-- **Required Resources**:
-  - Basic Python with NumPy for grid rendering
-  - No GPU required
-  - 5-10 volunteer participants
-- **Baseline Comparison**:
-  - Naive baseline: Random grid transformations (no compositional structure)
-  - Measure: Can humans distinguish n=1 vs n=3 tasks by difficulty?
-  - Threshold: At least 60% of participants should rate n=3 tasks as harder than n=1
+  - **Object Generation via Connectivity-Biased Growth**:
+    - Start with seed pixel at random position
+    - Iteratively add pixels from 8-neighborhood
+    - Weight pixel candidates by connectivity (more neighbors = higher probability)
+    - Produces cohesive blob-like objects with organic appearance
+    - Target size: 2-15 pixels per object
+  - **Object Type Distribution**:
+    - Random blobs (40%): Grown via connectivity-biased algorithm
+    - Filled rectangles (20%): Width 1-6, height 1-6 pixels
+    - Straight lines (20%): Horizontal, vertical, or diagonal, length 2-16
+    - Small patterns (20%): L-shapes, corners, T-shapes (2x2 or 3x3)
+  - **Image Composition**:
+    - Grid size: 10x10 or 16x16 (matching ARC specifications)
+    - Background: Color 0 (black)
+    - Number of objects per image: 1-4 (random)
+    - Object placement: Random positions with minimum spacing of 1 pixel
+    - Object colors: Uniform color per object from palette {1,2,3,4,5,6,7,8,9}
+  - **Corpus Generation**:
+    - Generate 50,000-100,000 atomic images
+    - Store as compressed numpy arrays or PNG files
+    - Split: 80% training, 10% validation, 10% test
+- **Implementation Milestones**:
+  - [ ] Implement connectivity-biased blob generator
+  - [ ] Implement rectangle, line, and pattern generators
+  - [ ] Implement object placement with spacing constraints
+  - [ ] Generate and store 50K image corpus
+  - [ ] Visual inspection confirms ARC-like appearance
 - **Success Criteria**:
-  - [ ] Hand-crafted encoder produces recognizable ARC-like grids
-  - [ ] Compositional transformations produce visually distinct outputs
-  - [ ] Mean human solve time increases from n=1 to n=3 (even if not statistically significant)
-  - [ ] No fundamental rendering bugs or edge case failures
-  - [ ] Tasks visually resemble ARC examples (confirmed by manual inspection)
-- **Decision Gate**:
-  - **GO**: If human solve time shows upward trend with composition depth (p < 0.3 acceptable for pilot) AND grids look ARC-like
-  - **PIVOT**: If mechanism works but rendering quality is poor → explore alternative shape libraries or grid sizes
-  - **NO-GO**: If composition depth shows no relationship to perceived difficulty OR fundamental technical blockers discovered
+  - [ ] Generated images contain 1-4 distinct objects with clear separation
+  - [ ] Objects have cohesive shapes (connected components)
+  - [ ] Images visually resemble atomic elements from ARC tasks
+  - [ ] No systematic artifacts or rendering errors
+  - [ ] Color distribution approximately uniform across palette
+- **Expected Output**: 50,000+ synthetic ARC-like atomic images for encoder training
 
-**Rationale**: This triage experiment avoids the critical encoder design challenge by using hand-crafted rendering. If compositional structure fails to produce difficulty variations even with perfect rendering, the core hypothesis is invalid. If successful, we have evidence to justify investing in sophisticated encoder development.
+### Experiment 0.2: Autoencoder Training for Grid Representations
+- **Depends on**: Experiment 0.1 completion (atomic image corpus generated)
+- **Objective**: Train an autoencoder φ: Grid → Z → Grid that learns to encode and reconstruct ARC-like grids
+- **Duration**: 3-4 days
+- **Architecture Options**:
+  - **Primary: Convolutional Autoencoder**:
+    - Encoder: CNN (3-4 conv layers) → Flatten → Dense(latent_dim)
+    - Latent space: d=16-32 dimensions (low-dimensional representation)
+    - Decoder: Dense(latent_dim) → Reshape → Transposed CNN → Softmax(10 colors)
+    - Loss: Cross-entropy on discrete color predictions
+  - **Alternative: Slot-Based Autoencoder** (if primary fails):
+    - Encoder: CNN → Slot Attention (k=4-6 slots, d=8-10 per slot)
+    - Each slot represents one object (position, shape, color)
+    - Decoder: Spatial broadcast → CNN → Grid reconstruction
+    - Advantage: More interpretable latent space aligned with objects
+- **Training Protocol**:
+  - Training set: 40,000 images from atomic corpus
+  - Validation: 5,000 images
+  - Optimizer: Adam with learning rate 1e-3
+  - Batch size: 64-128
+  - Epochs: 50-100 (early stopping on validation loss)
+  - Augmentation: Random rotations (90°, 180°, 270°), reflections
+- **Evaluation Metrics**:
+  - Pixel-wise reconstruction accuracy (exact match on discrete grids)
+  - Visual quality inspection (do reconstructions preserve structure?)
+- **Implementation Milestones**:
+  - [ ] Implement convolutional autoencoder architecture
+  - [ ] Set up training pipeline with data augmentation
+  - [ ] Train for 50-100 epochs with validation monitoring
+  - [ ] Evaluate reconstruction accuracy on test set
+  - [ ] If accuracy <85%, try slot-based architecture
+- **Success Criteria**:
+  - [ ] Reconstruction accuracy ≥90% on test set (atomic images)
+  - [ ] Latent space shows structure (similar images → nearby latents)
+  - [ ] No systematic failure modes on specific object types
+- **Expected Results**:
+  - Trained encoder φ achieving 90-95% reconstruction on atomic images
+  - This encoder will be frozen and used in compositional transformation pipeline
+- **Fallback**: If neural encoder fails (<85% accuracy), implement parametric rendering function mapping explicit object parameters (x, y, shape, color) to grids
+
+### Experiment 0.3: Encoder Validation on Compositional Tasks
+- **Depends on**: Experiment 0.2 completion (trained encoder available)
+- **Objective**: Validate that encoder trained on atomic images generalizes to compositionally transformed grids
+- **Duration**: 1-2 days
+- **Approach**:
+  - Implement 3 basic latent-space transformations:
+    - `translate(dx, dy)`: Shift object positions in latent space
+    - `rotate_90()`: Rotate objects 90 degrees
+    - `scale(factor)`: Change object sizes
+  - Generate 500 test pairs: (input_grid, transformed_grid)
+  - Encode both grids: z_input = φ(input), z_output = φ(output)
+  - Measure: Can we detect the transformation from latent differences?
+  - Qualitative: Do decoded transformed latents look correct?
+- **Analysis**:
+  - Reconstruction accuracy on transformed grids vs atomic grids
+  - Visual inspection: Does φ^(-1)((F(φ(input)))) produce expected result?
+- **Success Criteria**:
+  - [ ] Reconstruction accuracy ≥85% on compositionally transformed grids
+  - [ ] Latent-space transformations produce visually coherent outputs
+  - [ ] No catastrophic failures (blank grids, color corruption, etc.)
+- **Decision Gate**:
+  - **GO to Phase 1**: If encoder achieves ≥85% accuracy and transformations work
+  - **ITERATE**: If 70-85% accuracy, refine architecture or training (add 2-3 days)
+  - **FALLBACK**: If <70% accuracy, pivot to parametric rendering (add 3-4 days)
+
+**Phase 0 Output**: A trained encoder φ that maps ARC-like grids to low-dimensional latent representations, ready for integration into the compositional transformation framework.
+
+**Rationale**: This bootstrap approach solves the cold-start problem by generating synthetic training data procedurally, avoiding the need for labeled ARC tasks or pretrained vision models. The atomic image generator produces diverse grid structures matching ARC's visual statistics, enabling encoder training. Once trained, this encoder becomes the foundation for the compositional task generation pipeline in Phase 1.
 
 ---
 
-## Phase 1: Foundation & Encoder Development (Weeks 1-3)
+## Phase 1: Compositional Framework Development (Weeks 2-4)
 
-### Experiment 1.1: Encoder Architecture Search
-- **Depends on**: Experiment 0.1 success (GO decision)
-- **Objective**: Develop robust encoder φ: Z → Grid that maps slot-based latent representations to discrete ARC-like grids
-- **Duration**: 5-7 days
-- **Critical Challenge**: No existing autoencoders for ARC grids in literature (gap identified in related work analysis)
-- **Approach 1 - Neural Encoder (Primary)**:
-  - Train slot-based autoencoder on synthetic grid data
-  - Architecture: Adapt Slot Attention (Locatello et al.) for discrete outputs
-    - Encoder: CNN → Slot Attention (k slots, d<10 dimensions each)
-    - Decoder: Slot representations → Spatial broadcast → CNN → 16x16x10 grid (softmax over colors)
-  - Training data: 10,000 synthetic grids with 1-6 simple objects (circles, squares, triangles)
-  - Loss: Cross-entropy reconstruction loss on discrete grid outputs
-- **Approach 2 - Parametric Rendering (Fallback)**:
-  - Design differentiable rendering function mapping slots to shapes
-  - Each slot (x, y, shape_type, size, color, orientation) → rendered shape
-  - Composite shapes additively with occlusion rules
-  - Parameters manually designed, not learned
-- **Implementation Milestones**:
-  - [ ] Generate synthetic training dataset of 10K grids
-  - [ ] Implement slot attention architecture for discrete grids
-  - [ ] Train autoencoder for 50-100 epochs
-  - [ ] Evaluate reconstruction accuracy on held-out grids
-  - [ ] If neural approach fails, implement parametric rendering
-- **Expected Results**:
-  - Neural encoder: ≥90% reconstruction accuracy on simple grids
-  - Parametric encoder: Perfect reconstruction by design
-- **Success Criteria**:
-  - [ ] Encoder achieves ≥90% reconstruction accuracy OR parametric rendering works correctly
-  - [ ] Slots capture interpretable object properties (position, shape, color)
-  - [ ] No systematic failure modes on basic shapes
-  - [ ] Rendering completes in <100ms per grid for real-time generation
-- **Fallback**: If neural encoder fails (<80% accuracy), proceed with parametric rendering and note as limitation
-
-### Experiment 1.2: Sub-function Library Implementation
-- **Depends on**: Experiment 1.1 completion (either encoder approach)
+### Experiment 1.1: Sub-function Library Implementation
+- **Depends on**: Experiment 0.3 completion (validated encoder available)
 - **Objective**: Implement comprehensive library of interpretable sub-functions operating in latent space
 - **Duration**: 4-5 days
 - **Sub-function Categories**:
@@ -116,8 +157,8 @@ This roadmap outlines the experimental plan for validating controllable difficul
   - [ ] Edge cases handled gracefully (objects clipped at boundaries)
   - [ ] Rendered outputs visually match expected transformations
 
-### Experiment 1.3: Data Generation Pipeline
-- **Depends on**: Experiments 1.1 AND 1.2 completion
+### Experiment 1.2: Data Generation Pipeline
+- **Depends on**: Experiment 1.1 completion (sub-function library ready)
 - **Objective**: Build end-to-end pipeline for generating ARC-like tasks with controllable difficulty
 - **Duration**: 3-4 days
 - **Pipeline Components**:
@@ -151,7 +192,7 @@ This roadmap outlines the experimental plan for validating controllable difficul
 ## Phase 2: Difficulty Validation with Human Studies (Weeks 4-6)
 
 ### Experiment 2.1: Pilot Human Study - Composition Depth
-- **Depends on**: Generated task benchmark from 1.3
+- **Depends on**: Generated task benchmark from 1.2
 - **Objective**: Validate that composition depth n correlates with human-perceived difficulty
 - **Duration**: 5-7 days (including recruitment, data collection, analysis)
 - **Experimental Design**:
@@ -222,7 +263,7 @@ This roadmap outlines the experimental plan for validating controllable difficul
 ## Phase 3: AI Solver Evaluation (Weeks 7-9)
 
 ### Experiment 3.1: Baseline Solver Reproduction
-- **Depends on**: Generated benchmark from 1.3 (can run in parallel with Phase 2)
+- **Depends on**: Generated benchmark from 1.2 (can run in parallel with Phase 2)
 - **Objective**: Reproduce or adapt state-of-the-art ARC solvers to evaluate on generated tasks
 - **Duration**: 7-10 days
 - **Solvers to Evaluate**:
@@ -306,7 +347,7 @@ This roadmap outlines the experimental plan for validating controllable difficul
 ## Phase 4: Diversity and Quality Analysis (Weeks 10-11)
 
 ### Experiment 4.1: Structural Diversity Evaluation
-- **Depends on**: Generated benchmark from 1.3
+- **Depends on**: Generated benchmark from 1.2
 - **Objective**: Quantify diversity of generated tasks and compare to public ARC dataset
 - **Duration**: 3-4 days
 - **Diversity Metrics**:
@@ -338,7 +379,7 @@ This roadmap outlines the experimental plan for validating controllable difficul
   - [ ] Diversity maintained across difficulty levels
 
 ### Experiment 4.2: Encoder Quality Analysis
-- **Depends on**: Experiment 1.1 (encoder architecture)
+- **Depends on**: Experiment 0.2 (trained encoder from Phase 0)
 - **Objective**: Evaluate reconstruction accuracy and failure modes of encoder φ
 - **Duration**: 2-3 days
 - **Evaluation Protocol**:
@@ -581,13 +622,15 @@ This roadmap outlines the experimental plan for validating controllable difficul
 ## Dependencies Summary
 
 ```
-Experiment 0.1 (Triage: Hand-Crafted Encoder Test)
+Experiment 0.1 (Atomic Image Generator)
+    ↓
+Experiment 0.2 (Autoencoder Training)
+    ↓
+Experiment 0.3 (Encoder Validation)
     ↓ (GO decision)
-    ├─→ Experiment 1.1 (Encoder Architecture Search)
+    ├─→ Experiment 1.1 (Sub-function Library)
     │       ↓
-    │   Experiment 1.2 (Sub-function Library)
-    │       ↓
-    │   Experiment 1.3 (Data Generation Pipeline)
+    │   Experiment 1.2 (Data Generation Pipeline)
     │       ↓
     │       ├─→ Experiment 2.1 (Human Study: Depth)
     │       │       ↓
@@ -614,12 +657,12 @@ Experiment 0.1 (Triage: Hand-Crafted Encoder Test)
         Experiment 5.3 (Reproducibility Package)
 ```
 
-**Critical Path**: 0.1 → 1.1 → 1.2 → 1.3 → 2.1 → 2.2 → 2.3 → 5.1 → 5.2 → 5.3
+**Critical Path**: 0.1 → 0.2 → 0.3 → 1.1 → 1.2 → 2.1 → 2.2 → 2.3 → 5.1 → 5.2 → 5.3
 
 **Parallel Tracks**:
-- Human evaluation (Phase 2) and AI evaluation (Phase 3) can partially overlap after 1.3
-- Diversity analysis (4.1) can run immediately after 1.3
-- Encoder quality analysis (4.2) can run after 1.1
+- Human evaluation (Phase 2) and AI evaluation (Phase 3) can partially overlap after 1.2
+- Diversity analysis (4.1) can run immediately after 1.2
+- Encoder quality analysis (4.2) can run after 0.2 (partially overlaps with Phase 1)
 
 ---
 
@@ -627,15 +670,15 @@ Experiment 0.1 (Triage: Hand-Crafted Encoder Test)
 
 Overall project success requires meeting these criteria:
 
-### Phase 0 (Triage) - GO Decision
-- [ ] Hand-crafted encoder produces recognizable ARC-like grids
-- [ ] Composition depth shows upward trend with human difficulty (p < 0.3)
-- [ ] No fundamental technical blockers discovered
+### Phase 0 (Encoder Bootstrap) - GO Decision
+- [ ] Atomic image generator produces 50K+ ARC-like grids
+- [ ] Autoencoder achieves ≥90% reconstruction on atomic images
+- [ ] Encoder generalizes to compositional transformations (≥85% accuracy)
 
-### Phase 1 (Foundation) - Technical Viability
-- [ ] Encoder achieves ≥90% reconstruction accuracy (or parametric fallback works)
+### Phase 1 (Compositional Framework) - Technical Viability
 - [ ] All 15 sub-functions implemented and composable
 - [ ] Pipeline generates 3,000 diverse tasks matching ARC format
+- [ ] Tasks incorporate trained encoder from Phase 0
 
 ### Phase 2 (Human Validation) - Core Hypothesis
 - [ ] Spearman ρ ≥ 0.70 between composition depth and difficulty (p < 0.01)
@@ -659,7 +702,8 @@ Overall project success requires meeting these criteria:
 
 ### Minimum Publishable Unit (if timeline compressed)
 If forced to truncate experiments, the minimum viable paper requires:
-- [ ] Triage experiment + full encoder development (Phase 0-1)
+- [ ] Atomic image generator + encoder bootstrap (Phase 0)
+- [ ] Sub-function library + task generation pipeline (Phase 1)
 - [ ] Single human study validating composition depth effect (Experiment 2.1)
 - [ ] Diversity analysis comparing to public ARC (Experiment 4.1)
 - [ ] Reproducible task generation pipeline

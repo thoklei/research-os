@@ -291,3 +291,116 @@ NeurIPS - Appropriate for novel dataset generation methodology with theoretical 
 - Developing a custom neural encoder architecture
 - Hand-designing a parametric rendering function
 - Training a new autoencoder on synthetic grid data first
+
+---
+
+## Iteration 5: Solving the Cold-Start Problem
+
+### Problem Identified
+After completing the initial research planning, a critical flaw was identified in the methodology: **the cold-start problem**. The mission statement was vague about how to obtain the encoder $\varphi$ because:
+1. Off-the-shelf vision encoders (ImageNet, CLIP) are trained on natural images, not abstract grids
+2. We need an encoder to train the compositional generator
+3. But we need ARC-like data to train an encoder
+4. The only existing autoencoder attempt (arXiv:2311.08083) achieved only 2% accuracy
+
+This creates a circular dependency that must be resolved before the main research can proceed.
+
+### Solution: Atomic Image Generator Bootstrap
+
+**Key Insight**: Break the cycle by generating training data procedurally, then use that data to train the encoder.
+
+**Two-Phase Bootstrap Approach:**
+
+**Phase 0: Atomic Image Generation & Encoder Training**
+Instead of immediately tackling input-output transformation pairs, first build a simpler generator that produces individual ARC-like grids (atomic images). This enables:
+1. Creation of 50,000-100,000 synthetic training images
+2. Training an autoencoder on this procedurally-generated corpus
+3. Validation that the encoder generalizes to compositional transformations
+4. Integration of the trained encoder into the full pipeline
+
+**Atomic Image Generator Algorithm:**
+- **Object Generation**: Connectivity-biased random growth
+  - Start with seed pixel
+  - Iteratively add pixels from 8-neighborhood
+  - Weight candidates by connectivity (more neighbors = higher probability)
+  - Produces cohesive, organic-looking blobs
+  - Target size: 2-15 pixels per object
+
+- **Object Type Distribution**:
+  - Random blobs (40%): Grown via connectivity algorithm
+  - Filled rectangles (20%): 1-6 pixels width/height
+  - Straight lines (20%): Horizontal, vertical, diagonal, 2-16 pixels
+  - Small patterns (20%): L-shapes, corners, T-shapes (2x2 or 3x3)
+
+- **Image Composition**:
+  - Grid size: 10x10 or 16x16 (matching ARC)
+  - Background: Color 0 (black)
+  - Objects per image: 1-4 (random)
+  - Spacing: Minimum 1 pixel between objects
+  - Colors: Uniform per object from palette {1,2,3,4,5,6,7,8,9}
+
+**Autoencoder Architecture:**
+- **Primary approach**: Convolutional autoencoder
+  - Encoder: CNN (3-4 layers) → Flatten → Dense(latent_dim=16-32)
+  - Decoder: Dense → Reshape → Transposed CNN → Softmax(10 colors)
+  - Loss: Cross-entropy on discrete color predictions
+  - Target: ≥90% reconstruction accuracy
+
+- **Fallback approach**: Slot-based autoencoder
+  - Encoder: CNN → Slot Attention (4-6 slots, 8-10 dims each)
+  - More interpretable but potentially harder to train
+
+**Validation Strategy:**
+After training on atomic images, test generalization by:
+1. Implementing 3 basic transformations (translate, rotate, scale)
+2. Generating compositionally transformed test pairs
+3. Measuring reconstruction accuracy (target: ≥85%)
+4. Visual inspection of decoded transformed latents
+
+### Updated Research Timeline
+
+**Phase 0** (Days 1-7): Atomic Image Generation & Encoder Bootstrap
+- Experiment 0.1: Build atomic image generator (3-4 days)
+- Experiment 0.2: Train autoencoder on 50K images (3-4 days)
+- Experiment 0.3: Validate encoder on compositional tasks (1-2 days)
+
+**Phase 1** (Weeks 2-4): Compositional Framework Development
+- Now builds on trained encoder from Phase 0
+- Implement 15 sub-functions in latent space
+- Build full task generation pipeline
+
+**Remaining Phases** (Weeks 4-13): Unchanged
+- Human validation studies
+- AI solver evaluation
+- Diversity analysis
+- Final benchmarking
+
+### Why This Solves the Problem
+
+**Advantages:**
+1. **Breaks circular dependency**: No longer need ARC data or pretrained models
+2. **Realistic first step**: Atomic images are much simpler than transformation pairs
+3. **Validates core assumption**: Tests if learned encoders can work for ARC-like grids
+4. **Provides research artifact**: Even if later phases fail, we have a trained encoder for discrete grids
+
+**Potential Risks Mitigated:**
+- If neural encoder fails (<85% accuracy), fall back to parametric rendering
+- Atomic generator is simple enough to implement in 3-4 days
+- Validates technical feasibility before investing in full pipeline
+
+### Updated Contributions
+
+The research now contributes:
+1. **Bootstrap method** for training encoders on abstract reasoning tasks
+2. **Atomic image generator** as a reusable component for ARC research
+3. **First effective autoencoder** for ARC-like grids (if successful)
+4. **Controllable difficulty generator** using compositional transformations (original goal)
+
+### Critical Decision Point
+
+After Phase 0 (day 7), the project has a clear GO/NO-GO decision:
+- **GO**: Encoder achieves ≥85% on compositional transforms → proceed to full pipeline
+- **ITERATE**: 70-85% accuracy → refine architecture (add 2-3 days)
+- **FALLBACK**: <70% accuracy → pivot to parametric rendering (add 3-4 days)
+
+This structured approach addresses the most significant technical risk identified during planning and provides a concrete path forward.
