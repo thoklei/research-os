@@ -229,6 +229,29 @@ The system is fully functional with two production-ready plugins:
 - **Output**: Implemented code with specifications
 - **Features**: Standards enforcement, automatic code checking (ruff), verification framework
 
+### Active Research Project
+
+This repository contains an active research project on **controllable visual reasoning task generation** for ARC-AGI-like tasks:
+
+**Research Mission**: Develop the first controllable generator for ARC-like visual reasoning tasks with mathematically interpretable difficulty parameters through compositional latent transformations.
+
+**Current Phase**: Phase 0 (Atomic Image Generation & Encoder Bootstrap)
+- **Experiment 0.1**: Atomic image generator implementation (Days 1-7)
+- Focus: Building procedural generator for ARC-like grids to bootstrap encoder training
+
+**Key Technical Decisions** (from `project/tech-stack.md`):
+- **Framework**: PyTorch 2.0+ (confirmed)
+- **Encoder**: To be determined (neural vs parametric approach)
+- **Configuration**: YAML-based
+- **Experiment Tracking**: Weights & Biases (wandb)
+- **Development**: Pre-commit hooks with black formatter
+- **Testing**: Emphasis on well-documented code with comprehensive tests
+
+**Active Artifacts**:
+- `artifacts/2025-10-21-project-structure-setup/`: Initial project structure for Experiment 0.1
+
+See `project/mission.md` and `project/roadmap.md` for full research context.
+
 ## Dual-Plugin Integration
 
 ### Using Plugins Together
@@ -254,7 +277,33 @@ Each plugin can also be used standalone:
 - **Engineering artifacts**: `research-os/artifacts/YYYY-MM-DD-*/`
 - **User standards**: `~/.research-os/standards/` (customizable)
 
-## Ressources
+## Research Project Workflow
+
+When working on the active research project (ARC controllable generation):
+
+1. **Check Current Phase**: Review `project/roadmap.md` to understand the current experiment phase and dependencies
+2. **Reference Technical Specs**: Consult `project/tech-stack.md` for framework choices, metrics, and implementation details
+3. **Review Mission**: Read `project/mission.md` for research objectives and hypotheses
+4. **Work in Project Directory**: Implementation code goes in `project/src/`
+5. **Track Experiments**: Follow the experiment structure outlined in roadmap (e.g., `experiments/0.1-atomic-generator/`)
+
+**Experiment Tracking Structure**:
+```
+project/
+├── src/                        # Implementation code
+│   ├── generators/            # Atomic image generator
+│   ├── encoder/              # Encoder/decoder (when implemented)
+│   └── utils/                # Shared utilities
+├── experiments/              # Experiment logs and results
+│   ├── 0.1-atomic-generator/
+│   │   ├── log.md
+│   │   ├── results.json
+│   │   └── generated_images/
+│   └── 0.2-autoencoder/
+└── notebooks/                # Analysis notebooks
+```
+
+## Resources
 
 To fully understand how the marketplace, plugin and components (slash commands, hooks, subagents and skills) work, check out
 
