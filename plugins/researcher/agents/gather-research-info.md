@@ -25,10 +25,10 @@ if [ -d "research-os/project" ]; then
     echo "Research documentation already exists. Review existing files or start fresh?"
     # List existing research files
     ls -la research-os/project/
+else
+  # Create directory if needed
+  mkdir -p research-os/project
 fi
-
-# Create directory if needed
-mkdir -p research-os/project
 ```
 
 Check for any existing research configurations or prior work:

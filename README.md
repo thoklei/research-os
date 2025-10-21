@@ -45,10 +45,16 @@ This separation enables:
 
 ## Installation
 
-Research-OS is compatible with the Claude Code marketplace and plugin system. Add this marketplace to Claude Code:
+Research-OS is compatible with the Claude Code marketplace and plugin system. If you want to use this as-is, add this marketplace to Claude Code:
 
 ```bash
 /plugin marketplace add wielandbrendel/research-os
+```
+
+If you want to make local changes, instead add your local copy:
+
+```bash
+/plugin marketplace add ./research-os
 ```
 
 Then browse and install individual plugins (commands or agents):
