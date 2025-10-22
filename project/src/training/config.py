@@ -78,7 +78,7 @@ class TrainingConfig:
 
     # Paths
     data_path: str = "../datasets/test-100k/corpus.npz"
-    runs_base_dir: str = "experiments/runs"  # Base directory for all runs
+    runs_base_dir: str = "../experiments/runs"  # Base directory for all runs (project/experiments/runs/)
 
     # Run tracking (WandB-style)
     run_id: Optional[str] = None  # Auto-generated if None

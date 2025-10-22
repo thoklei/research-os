@@ -33,11 +33,11 @@
   - [x] 4.7 Move integration tests to tests/integration/ and update imports
   - [x] 4.8 Move generator tests to tests/ root and update imports
 
-- [ ] 5. Update Run Manager Configuration
-  - [ ] 5.1 Update runs_base_dir in src/training/config.py to "../experiments/runs"
-  - [ ] 5.2 Test RunManager path resolution with verification script
-  - [ ] 5.3 Verify run directory creation at correct location (project/experiments/runs/)
-  - [ ] 5.4 Test checkpoint saving to correct path
+- [x] 5. Update Run Manager Configuration
+  - [x] 5.1 Update runs_base_dir in src/training/config.py to "../experiments/runs"
+  - [x] 5.2 Test RunManager path resolution with verification script
+  - [x] 5.3 Verify run directory creation at correct location (project/experiments/runs/)
+  - [x] 5.4 Test checkpoint saving to correct path
 
 - [ ] 6. Post-Migration Verification and Testing
   - [ ] 6.1 Run complete test suite from project root (pytest tests/ -v)
