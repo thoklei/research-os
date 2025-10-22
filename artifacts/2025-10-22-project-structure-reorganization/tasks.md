@@ -23,15 +23,15 @@
   - [x] 3.5 Move ISSUE_MODE_COLLAPSE.md to project/issues/
   - [x] 3.6 Verify all intended files moved correctly
 
-- [ ] 4. Migrate and Configure Test Suite
-  - [ ] 4.1 Create pytest.ini in project root
-  - [ ] 4.2 Create root conftest.py with sys.path configuration
-  - [ ] 4.3 Move model tests to tests/models/ and update imports
-  - [ ] 4.4 Move data tests to tests/data/ and update imports
-  - [ ] 4.5 Move training tests to tests/training/ and update imports
-  - [ ] 4.6 Move evaluation tests to tests/evaluation/ and update imports
-  - [ ] 4.7 Move integration tests to tests/integration/ and update imports
-  - [ ] 4.8 Move generator tests to tests/ root and update imports
+- [x] 4. Migrate and Configure Test Suite
+  - [x] 4.1 Create pytest.ini in project root
+  - [x] 4.2 Create root conftest.py with sys.path configuration
+  - [x] 4.3 Move model tests to tests/models/ and update imports
+  - [x] 4.4 Move data tests to tests/data/ and update imports
+  - [x] 4.5 Move training tests to tests/training/ and update imports
+  - [x] 4.6 Move evaluation tests to tests/evaluation/ and update imports
+  - [x] 4.7 Move integration tests to tests/integration/ and update imports
+  - [x] 4.8 Move generator tests to tests/ root and update imports
 
 - [ ] 5. Update Run Manager Configuration
   - [ ] 5.1 Update runs_base_dir in src/training/config.py to "../experiments/runs"
