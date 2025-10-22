@@ -15,13 +15,13 @@
   - [x] 2.4 Create project/experiments/runs/ directory for run manager output
   - [x] 2.5 Add __init__.py files to all test subdirectories
 
-- [ ] 3. Migrate Legacy and Issue Files
-  - [ ] 3.1 Move debug scripts (debug_*.py, diagnose_*.py) to legacy/scripts/
-  - [ ] 3.2 Move one-off utilities (simple_gen.py, compute_class_weights.py, show_images.py) to legacy/scripts/
-  - [ ] 3.3 Move experiments/0.2-beta-vae/ to legacy/experiments/
-  - [ ] 3.4 Move standalone config.json files to legacy/configs/
-  - [ ] 3.5 Move ISSUE_MODE_COLLAPSE.md to project/issues/
-  - [ ] 3.6 Verify all intended files moved correctly
+- [x] 3. Migrate Legacy and Issue Files
+  - [x] 3.1 Move debug scripts (debug_*.py, diagnose_*.py) to legacy/scripts/
+  - [x] 3.2 Move one-off utilities (simple_gen.py, compute_class_weights.py, show_images.py) to legacy/scripts/
+  - [x] 3.3 Move experiments/0.2-beta-vae/ to legacy/experiments/
+  - [x] 3.4 Move standalone config.json files to legacy/configs/
+  - [x] 3.5 Move ISSUE_MODE_COLLAPSE.md to project/issues/
+  - [x] 3.6 Verify all intended files moved correctly
 
 - [ ] 4. Migrate and Configure Test Suite
   - [ ] 4.1 Create pytest.ini in project root
