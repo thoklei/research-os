@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, Any
 from pathlib import Path
 import json
+from .run_manager import RunManager
 
 
 @dataclass
@@ -56,7 +57,6 @@ class TrainingConfig:
     # Checkpointing
     save_every_n_epochs: int = 5
     save_best_only: bool = True
-    checkpoint_dir: str = "checkpoints"
 
     # Weights & Biases logging
     use_wandb: bool = True
@@ -78,19 +78,17 @@ class TrainingConfig:
 
     # Paths
     data_path: str = "../datasets/test-100k/corpus.npz"
-    output_dir: str = "experiments/0.2-beta-vae"
+    runs_base_dir: str = "experiments/runs"  # Base directory for all runs
+
+    # Run tracking (WandB-style)
+    run_id: Optional[str] = None  # Auto-generated if None
 
     # Success criteria
     target_pixel_accuracy: float = 0.90
     min_kl_per_dim: float = 0.05  # To detect posterior collapse
 
     def __post_init__(self):
-        """Validate configuration and create directories."""
-        # Create output directories
-        self.output_dir = Path(self.output_dir)
-        self.checkpoint_dir = self.output_dir / "checkpoints"
-        self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
-
+        """Validate configuration and create run manager."""
         # Validate values
         assert self.latent_dim > 0, "latent_dim must be positive"
         assert self.batch_size > 0, "batch_size must be positive"
@@ -98,20 +96,47 @@ class TrainingConfig:
         assert self.max_epochs > 0, "max_epochs must be positive"
         assert 0 < self.target_pixel_accuracy <= 1.0, "target_pixel_accuracy must be in (0, 1]"
 
+        # Initialize run manager (generates unique run_id if not provided)
+        self.run_manager = RunManager(
+            base_dir=self.runs_base_dir,
+            run_id=self.run_id
+        )
+
+        # Update run_id and set checkpoint_dir
+        self.run_id = self.run_manager.run_id
+        self.checkpoint_dir = self.run_manager.checkpoints_dir
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert config to dictionary."""
         config_dict = {}
         for key, value in self.__dict__.items():
+            # Skip run_manager object (not serializable)
+            if key == 'run_manager':
+                continue
+            # Convert Path objects to strings
             if isinstance(value, Path):
                 config_dict[key] = str(value)
             else:
                 config_dict[key] = value
         return config_dict
 
-    def save(self, filepath: str):
-        """Save configuration to JSON file."""
-        with open(filepath, 'w') as f:
-            json.dump(self.to_dict(), f, indent=2)
+    def save(self, filepath: Optional[str] = None):
+        """
+        Save configuration to JSON file.
+
+        Args:
+            filepath: Optional custom path. If None, saves to run folder.
+        """
+        if filepath is None:
+            # Save to run manager's directory
+            if self.run_manager is not None:
+                self.run_manager.save_config(self)
+            else:
+                raise ValueError("No run_manager available and no filepath provided")
+        else:
+            # Save to custom path
+            with open(filepath, 'w') as f:
+                json.dump(self.to_dict(), f, indent=2)
 
     @classmethod
     def load(cls, filepath: str) -> 'TrainingConfig':

@@ -109,6 +109,12 @@ def main():
     set_seed(config.seed)
     print(f"[SETUP] Random seed: {config.seed}")
 
+    # Print run information
+    print("\n" + "=" * 70)
+    print(f"RUN ID: {config.run_id}")
+    print(f"RUN DIR: {config.run_manager.run_dir}")
+    print("=" * 70)
+
     # Create data loaders
     print("\n" + "─" * 70)
     print("Loading data...")
@@ -149,10 +155,11 @@ def main():
             normalize=True
         )
 
-        # Save weights
-        weights_path = config.output_dir / "class_weights.pth"
+        # Save weights to run directory
+        weights_path = config.run_manager.run_dir / "class_weights.pth"
         from models import save_class_weights
         save_class_weights(class_weights, str(weights_path))
+        print(f"[WEIGHTS] Saved to: {weights_path}")
 
     # Create model
     print("\n" + "─" * 70)
@@ -183,10 +190,18 @@ def main():
         config=config,
     )
 
-    # Save config
-    config_path = config.output_dir / "config.json"
-    config.save(str(config_path))
-    print(f"[CONFIG] Saved to: {config_path}")
+    # Save config to run directory
+    config.save()  # Uses run_manager by default
+    print(f"[CONFIG] Saved to: {config.run_manager.run_dir / 'config.json'}")
+
+    # Save run metadata
+    config.run_manager.save_metadata({
+        'model_params': num_params,
+        'train_samples': len(train_loader.dataset),
+        'val_samples': len(val_loader.dataset),
+        'test_samples': len(test_loader.dataset) if test_loader is not None else 0,
+    })
+    print(f"[METADATA] Saved to: {config.run_manager.run_dir / 'metadata.json'}")
 
     # Train
     best_val_loss = trainer.train()
@@ -222,6 +237,8 @@ def main():
 
     print("\n" + "=" * 70)
     print("Training complete!")
+    print(f"Run ID: {config.run_id}")
+    print(f"Results saved to: {config.run_manager.run_dir}")
     print("=" * 70)
 
 
