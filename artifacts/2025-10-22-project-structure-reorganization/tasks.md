@@ -2,11 +2,11 @@
 
 ## Tasks
 
-- [ ] 1. Pre-Migration Safety Setup and Verification
-  - [ ] 1.1 Create git branch for reorganization (safety rollback)
-  - [ ] 1.2 Run baseline test suite and record all passing tests
-  - [ ] 1.3 Verify regenerate_reconstruction.py contains current visualization logic
-  - [ ] 1.4 Document current directory structure for reference
+- [x] 1. Pre-Migration Safety Setup and Verification
+  - [x] 1.1 Create git branch for reorganization (safety rollback)
+  - [x] 1.2 Run baseline test suite and record all passing tests
+  - [x] 1.3 Verify regenerate_reconstruction.py contains current visualization logic
+  - [x] 1.4 Document current directory structure for reference
 
 - [ ] 2. Create New Directory Structure
   - [ ] 2.1 Create project/legacy/ with subdirectories (scripts/, experiments/, configs/)
