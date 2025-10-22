@@ -8,12 +8,12 @@
   - [x] 1.3 Verify regenerate_reconstruction.py contains current visualization logic
   - [x] 1.4 Document current directory structure for reference
 
-- [ ] 2. Create New Directory Structure
-  - [ ] 2.1 Create project/legacy/ with subdirectories (scripts/, experiments/, configs/)
-  - [ ] 2.2 Create project/issues/ directory
-  - [ ] 2.3 Create project/tests/ with mirrored structure (models/, data/, training/, evaluation/, integration/)
-  - [ ] 2.4 Create project/experiments/runs/ directory for run manager output
-  - [ ] 2.5 Add __init__.py files to all test subdirectories
+- [x] 2. Create New Directory Structure
+  - [x] 2.1 Create project/legacy/ with subdirectories (scripts/, experiments/, configs/)
+  - [x] 2.2 Create project/issues/ directory
+  - [x] 2.3 Create project/tests/ with mirrored structure (models/, data/, training/, evaluation/, integration/)
+  - [x] 2.4 Create project/experiments/runs/ directory for run manager output
+  - [x] 2.5 Add __init__.py files to all test subdirectories
 
 - [ ] 3. Migrate Legacy and Issue Files
   - [ ] 3.1 Move debug scripts (debug_*.py, diagnose_*.py) to legacy/scripts/
