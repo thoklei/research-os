@@ -1,0 +1,22 @@
+{
+  "pixel_accuracy": 0.93109453125,
+  "recon_loss": 2.3067786029622526,
+  "class_0_acc": 1.0,
+  "class_1_acc": 0.0,
+  "class_2_acc": 0.0,
+  "class_3_acc": 0.0,
+  "class_4_acc": 0.0,
+  "class_5_acc": 0.0,
+  "class_6_acc": 0.0,
+  "class_7_acc": 0.0,
+  "class_8_acc": 0.0,
+  "class_9_acc": 0.0,
+  "kl_divergence": 6.35860487818718e-07,
+  "kl_per_dim": 6.358604309752991e-08,
+  "active_dims": 0.0,
+  "posterior_collapse": 1.0,
+  "kl_per_dim_std": 3.151009053681264e-08,
+  "disentanglement_score": 0.37709125876426697,
+  "latent_variance_mean": 1.0202741407283611e-07,
+  "latent_variance_std": 4.224455807388949e-08
+}

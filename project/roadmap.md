@@ -85,6 +85,51 @@ This roadmap outlines the experimental plan for validating controllable difficul
   - Trained encoder φ achieving 90-95% reconstruction on atomic images
   - This encoder will be frozen and used in compositional transformation pipeline
 - **Fallback**: If neural encoder fails (<85% accuracy), implement parametric rendering function mapping explicit object parameters (x, y, shape, color) to grids
+- **⚠️ CRITICAL FINDING - Class Imbalance & Mode Collapse** (2025-10-22):
+  - **Problem Discovered**: Initial β-VAE training with standard cross-entropy loss led to mode collapse - model predicted class 0 (black) for 100% of pixels
+  - **Root Cause**: ARC grids have ~93% black pixels (background), creating severe class imbalance. Standard cross-entropy treats all classes equally, so model learned to minimize loss by always predicting the majority class
+  - **Evidence**:
+    - Reconstruction logits: Class 0 avg = 3.30, Classes 1-9 avg = -1.67 (massive bias)
+    - Example: Pixel that should be green (class 3) predicted as black with 94.8% confidence
+    - Posterior collapse: KL/dim = 0.0000, no active latent dimensions
+    - Misleading accuracy: 93% overall (just matches black pixel percentage), but 0% on colored pixels
+  - **Solution Implemented**: Focal Loss with class weighting
+    - **Focal Loss**: Addresses example difficulty imbalance by down-weighting easy examples
+      - Formula: `FL(p_t) = -(1 - p_t)^γ * log(p_t)`
+      - γ=2 (standard): Easy examples (p_t=0.99) reduced 1000x, hard examples (p_t=0.60) only 6x
+      - Effect: Forces model to learn from hard colored pixels instead of coasting on easy black pixels
+    - **Class Weights**: α = inverse frequency, addresses class frequency imbalance
+      - Black pixels get low weight, colored pixels get high weight
+      - Combined with focal loss for comprehensive imbalance handling
+  - **Implementation Details**: See `models/losses.py` for FocalLoss class, `models/beta_vae.py` for integration
+  - **Design Decision**: This is a fundamental requirement for training on ARC-like grids, not an optimization. All future encoder/decoder models must handle class imbalance
+  - **Documentation**: Full analysis in `src/ISSUE_MODE_COLLAPSE.md`
+- **Known Issue - Black Border in Dataset** (2025-10-22):
+  - **TODO**: Investigate and fix black border artifact in generated grids (appears to be 2-pixel border around many samples)
+  - **Root Cause**: Likely related to the placement engine in the atomic image generator
+  - **Priority**: Low - accepting this for now, but should be addressed before finalizing dataset for publication
+  - **Impact**: May affect model's ability to learn edge patterns and object placement near borders
+- **⚠️ CRITICAL BUG FIXED - β-Annealing Started Too High** (2025-10-22):
+  - **Problem Discovered**: Encoder was collapsing to outputting prior distribution N(0,1) instead of learning useful representations
+  - **Root Cause**: β-annealing schedule started at β=0.1 (epoch 1) instead of 0.0, penalizing KL divergence before encoder could learn reconstruction
+  - **Evidence from Diagnostics**:
+    - Encoder μ ≈ 0 for all inputs (std = 0.0004, essentially constant)
+    - Encoder σ² ≈ 1.0 (outputting prior variance)
+    - Sampled latents z ~ N(0,1) (pure random noise, no input information)
+    - KL divergence ≈ 0 (because encoder outputs exactly the prior)
+    - Decoder learning to hallucinate "average" grids from noise (44% class 0, 54% class 6)
+    - 0% accuracy on most color classes (1,2,3,4,5,7,8,9)
+  - **Why This Caused Failure**:
+    - With β>0 from epoch 1, model found local minimum: "output prior to minimize KL, let decoder guess average"
+    - Encoder never learned to encode input information
+    - Increasing latent dim or using Focal Loss couldn't help - encoder was ignoring inputs!
+  - **Fix Implemented**: Modified β schedule in `training/utils.py`
+    - Epochs 1-5: β = 0.0 (free reconstruction learning, no KL penalty)
+    - Epochs 6-15: β = 0.0 → 1.0 (gradual introduction of KL regularization)
+    - Epochs 16-35: β = 1.0 → 2.0 (encourage disentanglement)
+    - This allows encoder/decoder to learn reconstruction FIRST (β=0 = standard autoencoder), THEN gradually add variational regularization
+  - **Implementation**: See `training/utils.py:get_beta_schedule()`
+  - **Lesson**: β-VAE training requires careful warm-up - premature KL penalty causes collapse to prior
 
 ### Experiment 0.3: Encoder Validation on Compositional Tasks
 - **Depends on**: Experiment 0.2 completion (trained encoder available)

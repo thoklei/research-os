@@ -40,3 +40,6 @@ env/
 
 # OS
 Thumbs.db
+
+*.png
+*.pth
