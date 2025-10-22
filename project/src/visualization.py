@@ -11,7 +11,9 @@ This module implements:
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
-from typing import List, Union, Optional, Dict
+from typing import List, Union, Optional, Dict, Tuple, Any
+from datetime import datetime
+import json
 from atomic_generator import Grid
 
 
@@ -216,3 +218,106 @@ def load_corpus(filepath: str) -> Dict[str, np.ndarray]:
         result[key] = data[key]
 
     return result
+
+
+def create_metadata(num_images: int,
+                   dtype: str = 'uint8',
+                   seed: Optional[int] = None,
+                   version: str = 'v1',
+                   **kwargs) -> Dict[str, Any]:
+    """
+    Create metadata dictionary for dataset.
+
+    Args:
+        num_images: Number of images in dataset
+        dtype: Data type used (default: 'uint8')
+        seed: Random seed used (optional)
+        version: Dataset version (default: 'v1')
+        **kwargs: Additional metadata fields
+
+    Returns:
+        Dictionary containing metadata
+    """
+    metadata = {
+        'num_images': num_images,
+        'dtype': dtype,
+        'version': version,
+        'timestamp': datetime.now().isoformat(),
+        'grid_size': [16, 16],
+    }
+
+    # Add seed if provided
+    if seed is not None:
+        metadata['seed'] = seed
+
+    # Add any additional parameters
+    for key, value in kwargs.items():
+        metadata[key] = value
+
+    return metadata
+
+
+def save_metadata(metadata: Dict[str, Any], filepath: str):
+    """
+    Save metadata to JSON file.
+
+    Args:
+        metadata: Metadata dictionary
+        filepath: Path to save JSON file
+    """
+    with open(filepath, 'w') as f:
+        json.dump(metadata, f, indent=2)
+
+
+def validate_dataset(filepath: str) -> Tuple[bool, str]:
+    """
+    Validate dataset integrity and format.
+
+    Checks:
+    - File exists and is loadable
+    - Correct shape (N, 16, 16) - 3D array of 2D grids
+    - Values in valid range [0, 9] (semantic values, not RGB)
+    - Recommended dtype is uint8
+
+    Args:
+        filepath: Path to .npz file
+
+    Returns:
+        Tuple of (is_valid, message)
+    """
+    try:
+        # Load dataset
+        data = load_corpus(filepath)
+
+        if 'images' not in data:
+            return False, "Dataset missing 'images' key"
+
+        images = data['images']
+
+        # Check shape - should be (N, 16, 16) 3D array
+        if len(images.shape) != 3:
+            return False, f"Expected 3D array (N, 16, 16), got shape {images.shape}"
+
+        if images.shape[1] != 16 or images.shape[2] != 16:
+            return False, f"Expected 16x16 grids, got {images.shape[1]}x{images.shape[2]}"
+
+        # Check value range - should be semantic values 0-9
+        min_val = np.min(images)
+        max_val = np.max(images)
+
+        if min_val < 0 or max_val > 9:
+            return False, f"Values out of range [0, 9]: min={min_val}, max={max_val}"
+
+        # Check dtype (warn if not uint8, but don't fail)
+        dtype_info = f"dtype={images.dtype}"
+        if images.dtype != np.uint8:
+            dtype_info += " (recommended: uint8 for memory efficiency)"
+
+        # Validation passed
+        num_images = images.shape[0]
+        message = f"Dataset valid: {num_images} images, shape {images.shape}, {dtype_info}"
+
+        return True, message
+
+    except Exception as e:
+        return False, f"Validation failed: {str(e)}"

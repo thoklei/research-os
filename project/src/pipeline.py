@@ -15,6 +15,7 @@ Object type distribution:
 
 import numpy as np
 from typing import List, Tuple, Optional
+from tqdm import tqdm
 from atomic_generator import Grid, PlacementEngine, validate_object_size
 from blob_generator import BlobGenerator
 from shape_generators import RectangleGenerator, LineGenerator, PatternGenerator
@@ -119,21 +120,56 @@ class ImageGenerator:
             return self.blob_generator.generate()
 
 
-def generate_corpus(corpus_size: int = 10) -> List[Grid]:
+def estimate_memory(num_images: int, dtype=np.uint8) -> Tuple[int, float]:
+    """
+    Estimate memory required for corpus generation.
+
+    Args:
+        num_images: Number of images to generate
+        dtype: NumPy dtype for storage (default: np.uint8)
+
+    Returns:
+        Tuple of (bytes_needed, megabytes_estimate)
+    """
+    # Each image is 16x16
+    bytes_per_element = np.dtype(dtype).itemsize
+    bytes_needed = num_images * 16 * 16 * bytes_per_element
+
+    # Convert to MB
+    mb_estimate = bytes_needed / (1024 * 1024)
+
+    return bytes_needed, mb_estimate
+
+
+def generate_corpus(corpus_size: int = 10,
+                   dtype=np.uint8,
+                   show_progress: bool = False) -> List[Grid]:
     """
     Generate corpus of atomic images.
 
     Args:
         corpus_size: Number of images to generate (default: 10)
+        dtype: NumPy dtype for grid data (default: np.uint8 for memory efficiency)
+        show_progress: Show tqdm progress bar (default: False for backward compatibility)
 
     Returns:
-        List of Grid instances
+        List of Grid instances with specified dtype
     """
     generator = ImageGenerator()
     corpus = []
 
-    for _ in range(corpus_size):
+    # Create iterator with optional progress bar
+    iterator = range(corpus_size)
+    if show_progress:
+        iterator = tqdm(iterator, desc="Generating images", unit="img")
+
+    for _ in iterator:
         grid = generator.generate()
+
+        # Convert to specified dtype if needed
+        if grid.data.dtype != dtype:
+            grid.data = grid.data.astype(dtype)
+
         corpus.append(grid)
 
     return corpus
