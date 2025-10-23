@@ -1,0 +1,50 @@
+
+[W&B] Weights & Biases logging initialized
+
+[W&B] Weights & Biases logging initialized
+
+[SETUP] Device: cpu
+
+[SETUP] Device: cpu
+[SETUP] Model parameters: 801,034
+[SETUP] Model parameters: 801,034
+[SETUP] Training samples: 80,000
+[SETUP] Training samples: 80,000
+[SETUP] Validation samples: 10,000
+[SETUP] Validation samples: 10,000
+[SETUP] Batches per epoch: 625
+[SETUP] Batches per epoch: 625
+                                                                                                    
+                                                                                                    
+Epoch 1/5 (75.0s)
+Epoch 1/5 (75.0s)
+  Train - Loss: 0.1458 | Acc: 0.884 | KL/dim: 4.0693
+  Train - Loss: 0.1458 | Acc: 0.884 | KL/dim: 4.0693
+  Val   - Loss: 0.0705 | Acc: 0.876 | KL/dim: 6.5703
+  Val   - Loss: 0.0705 | Acc: 0.876 | KL/dim: 6.5703
+[SAVE] Reconstructions saved to: ../experiments/runs/51e1bcd2/checkpoints/reconstructions_epoch_1.png
+[SAVE] Reconstructions saved to: ../experiments/runs/51e1bcd2/checkpoints/reconstructions_epoch_1.png
+  [VISUALIZATION] Saved: reconstructions_epoch_1.png
+  [VISUALIZATION] Saved: reconstructions_epoch_1.png
+  [BEST] New best validation loss: 0.0705
+  [BEST] New best validation loss: 0.0705
+  [CHECKPOINT] Saved: best_model.pth
+  [CHECKPOINT] Saved: best_model.pth
+                                                                                                    
+                                                                                                    
+Epoch 2/5 (60.7s)
+Epoch 2/5 (60.7s)
+  Train - Loss: 0.0550 | Acc: 0.860 | KL/dim: 7.4633
+  Train - Loss: 0.0550 | Acc: 0.860 | KL/dim: 7.4633
+  Val   - Loss: 0.0486 | Acc: 0.877 | KL/dim: 7.7637
+  Val   - Loss: 0.0486 | Acc: 0.877 | KL/dim: 7.7637
+[SAVE] Reconstructions saved to: ../experiments/runs/51e1bcd2/checkpoints/reconstructions_epoch_2.png
+[SAVE] Reconstructions saved to: ../experiments/runs/51e1bcd2/checkpoints/reconstructions_epoch_2.png
+  [VISUALIZATION] Saved: reconstructions_epoch_2.png
+  [VISUALIZATION] Saved: reconstructions_epoch_2.png
+  [BEST] New best validation loss: 0.0486
+  [BEST] New best validation loss: 0.0486
+  [CHECKPOINT] Saved: best_model.pth
+  [CHECKPOINT] Saved: best_model.pth
+Epoch 3/5 [Train]:  58%|#####7    | 362/625 [00:36<00:28,  9.15it/s, loss=0.0381, acc=0.879, β=0.00]
+Epoch 3/5 [Train]:  58%|#####7    | 362/625 [00:36<00:28,  9.15it/s, loss=0.0381, acc=0.879, β=0.00]

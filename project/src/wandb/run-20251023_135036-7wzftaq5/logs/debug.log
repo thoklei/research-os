@@ -1,0 +1,15 @@
+2025-10-23 13:50:36,573 INFO    MainThread:25236 [wandb_setup.py:_flush():81] Current SDK version is 0.22.2
+2025-10-23 13:50:36,573 INFO    MainThread:25236 [wandb_setup.py:_flush():81] Configure stats pid to 25236
+2025-10-23 13:50:36,573 INFO    MainThread:25236 [wandb_setup.py:_flush():81] Loading settings from /Users/thomas/.config/wandb/settings
+2025-10-23 13:50:36,573 INFO    MainThread:25236 [wandb_setup.py:_flush():81] Loading settings from /Users/thomas/Projects/hackathon/research-os/project/src/wandb/settings
+2025-10-23 13:50:36,573 INFO    MainThread:25236 [wandb_setup.py:_flush():81] Loading settings from environment variables
+2025-10-23 13:50:36,573 INFO    MainThread:25236 [wandb_init.py:setup_run_log_directory():705] Logging user logs to /Users/thomas/Projects/hackathon/research-os/project/src/wandb/run-20251023_135036-7wzftaq5/logs/debug.log
+2025-10-23 13:50:36,573 INFO    MainThread:25236 [wandb_init.py:setup_run_log_directory():706] Logging internal logs to /Users/thomas/Projects/hackathon/research-os/project/src/wandb/run-20251023_135036-7wzftaq5/logs/debug-internal.log
+2025-10-23 13:50:36,573 INFO    MainThread:25236 [wandb_init.py:init():832] calling init triggers
+2025-10-23 13:50:36,573 INFO    MainThread:25236 [wandb_init.py:init():837] wandb.init called with sweep_config: {}
+config: {'latent_dim': 32, 'num_colors': 10, 'use_focal_loss': True, 'focal_gamma': 2.0, 'use_class_weights': True, 'class_weight_method': 'sqrt_inverse', 'class_weight_smooth': 1.0, 'batch_size': 128, 'learning_rate': 0.0005, 'max_epochs': 5, 'num_workers': 0, 'gradient_clip_norm': 1.0, 'beta_schedule': 'linear_warmup', 'use_lr_schedule': True, 'lr_schedule_type': 'cosine', 'lr_min': 1e-05, 'lr_decay_epochs': 10, 'lr_decay_rate': 0.5, 'early_stopping_patience': 3, 'early_stopping_min_delta': 0.0, 'use_augmentation': True, 'save_every_n_epochs': 1, 'save_best_only': True, 'use_wandb': True, 'wandb_project': 'arc-beta-vae', 'wandb_entity': None, 'wandb_run_name': None, 'wandb_tags': ['beta-vae', 'arc', 'experiment-0.2'], 'log_every_n_steps': 10, 'validate_every_n_epochs': 1, 'device': 'cuda', 'pin_memory': True, 'seed': 42, 'data_path': '../datasets/test-100k/corpus.npz', 'runs_base_dir': '../experiments/runs', 'run_id': '55bdaf8f', 'target_pixel_accuracy': 0.9, 'min_kl_per_dim': 0.05, 'checkpoint_dir': '../experiments/runs/55bdaf8f/checkpoints', '_wandb': {'code_path': 'code/project/src/train_vae.py'}}
+2025-10-23 13:50:36,573 INFO    MainThread:25236 [wandb_init.py:init():880] starting backend
+2025-10-23 13:50:37,203 INFO    MainThread:25236 [wandb_init.py:init():883] sending inform_init request
+2025-10-23 13:50:37,235 INFO    MainThread:25236 [wandb_init.py:init():891] backend started and connected
+2025-10-23 13:50:37,237 INFO    MainThread:25236 [wandb_init.py:init():961] updated telemetry
+2025-10-23 13:50:37,258 INFO    MainThread:25236 [wandb_init.py:init():985] communicating run to backend with 90.0 second timeout

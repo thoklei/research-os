@@ -135,13 +135,28 @@ def compute_class_weights(
         num_classes: Number of classes
         method: Weighting method:
             - 'inverse': weight = 1 / (count + smooth)
+              Full inverse weighting - can create extreme ratios (e.g., 123:1)
+
             - 'sqrt_inverse': weight = 1 / sqrt(count + smooth)
+              Square root smoothing - reduces extreme weight ratios while maintaining
+              class imbalance awareness. Transforms extreme ratios (123:1 → ~11:1).
+              Recommended for use with Focal Loss to avoid pathological loss landscapes.
+
             - 'balanced': weight = n_samples / (n_classes * count)
-        smooth: Smoothing factor to avoid division by zero
+              Sklearn-style balanced weights - equivalent to inverse but with
+              different normalization factor.
+
+        smooth: Smoothing factor to avoid division by zero (default: 1.0)
         normalize: Whether to normalize weights to sum to num_classes
 
     Returns:
         Class weights tensor of shape (num_classes,)
+
+    Example:
+        For ARC grids with ~93% background (class 0) and 7% objects:
+        - inverse method: weight_ratio ≈ 123:1 (extreme)
+        - sqrt_inverse method: weight_ratio ≈ 11:1 (moderate)
+        - balanced method: weight_ratio ≈ 123:1 (same as inverse)
     """
     # Count occurrences of each class
     class_counts = torch.zeros(num_classes, dtype=torch.long)

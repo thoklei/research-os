@@ -1,0 +1,37 @@
+{
+  "os":  "macOS-15.6.1-arm64-arm-64bit-Mach-O",
+  "python":  "CPython 3.13.2",
+  "startedAt":  "2025-10-23T12:02:15.782248Z",
+  "program":  "/Users/thomas/Projects/hackathon/research-os/project/src/test_overfit_batch.py",
+  "codePath":  "project/src/test_overfit_batch.py",
+  "codePathLocal":  "test_overfit_batch.py",
+  "git":  {
+    "remote":  "git@github.com:thoklei/research-os.git",
+    "commit":  "590b1fe2ba276b586fb108534f811c931c125c9a"
+  },
+  "email":  "thomasklein18@gmail.com",
+  "root":  "/Users/thomas/Projects/hackathon/research-os/project/src",
+  "host":  "Thomass-MacBook-Pro-3.local",
+  "executable":  "/Users/thomas/.pyenv/versions/zeus/bin/python",
+  "cpu_count":  8,
+  "cpu_count_logical":  8,
+  "disk":  {
+    "/":  {
+      "total":  "245107195904",
+      "used":  "230143291392"
+    }
+  },
+  "memory":  {
+    "total":  "17179869184"
+  },
+  "apple":  {
+    "name":  "Apple M1",
+    "ecpuCores":  4,
+    "pcpuCores":  4,
+    "gpuCores":  8,
+    "memoryGb":  16,
+    "swapTotalBytes":  "5368709120",
+    "ramTotalBytes":  "17179869184"
+  },
+  "writerId":  "4gdbxrc7esb09psctk8ifp32np49azht"
+}

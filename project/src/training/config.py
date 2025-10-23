@@ -24,10 +24,13 @@ class TrainingConfig:
     num_colors: int = 10
 
     # Loss function configuration
+    # OPTION B: Focal Loss with square-root smoothed class weights
+    # Hypothesis: sqrt_inverse method reduces extreme weight ratios (186:1 → 13.6:1)
+    # This should avoid pathological loss landscapes while maintaining class imbalance awareness
     use_focal_loss: bool = True
     focal_gamma: float = 2.0
-    use_class_weights: bool = True
-    class_weight_method: str = 'inverse'  # Options: inverse, sqrt_inverse, balanced
+    use_class_weights: bool = True  # Enabled - use sqrt_inverse smoothing
+    class_weight_method: str = 'sqrt_inverse'  # Options: inverse, sqrt_inverse, balanced
     class_weight_smooth: float = 1.0
 
     # Training hyperparameters
@@ -154,19 +157,20 @@ class TrainingConfig:
         return "\n".join(lines)
 
 
-def get_default_config() -> TrainingConfig:
+def get_default_config(run_id: Optional[str] = None) -> TrainingConfig:
     """Get default training configuration from spec."""
-    return TrainingConfig()
+    return TrainingConfig(run_id=run_id)
 
 
-def get_quick_test_config() -> TrainingConfig:
+def get_quick_test_config(run_id: Optional[str] = None) -> TrainingConfig:
     """Get configuration for quick testing (reduced epochs, optimized batch size)."""
     return TrainingConfig(
+        run_id=run_id,
         batch_size=128,  # Increased from 32 for more stable gradients
         learning_rate=5e-4,  # Reduced from 1e-3 for stability
         max_epochs=5,
         num_workers=0,
-        use_wandb=False,
+        use_wandb=True,  # Enable W&B for loss tracking
         save_every_n_epochs=1,
         early_stopping_patience=3,
     )

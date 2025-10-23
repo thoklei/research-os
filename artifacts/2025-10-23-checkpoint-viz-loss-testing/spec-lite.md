@@ -1,0 +1,3 @@
+# Spec Summary (Lite)
+
+Implement automatic visualization generation during training checkpoints to enable qualitative assessment of reconstruction quality throughout training. The system will generate side-by-side original vs reconstructed grid visualizations for 10 random samples whenever a checkpoint is saved. Additionally, systematically test three loss configuration options (Focal Loss without weights, Focal Loss with smoothed weights, reduced Focal Loss with original weights) to resolve training instability where extreme class weights (123:1) combined with Focal Loss create pathological loss landscapes causing mode collapse to background prediction.

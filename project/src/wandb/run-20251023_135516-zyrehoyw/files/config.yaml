@@ -1,0 +1,137 @@
+_wandb:
+    value:
+        cli_version: 0.22.2
+        code_path: code/project/src/train_vae.py
+        e:
+            lrb0rqe2s8tixqrabrtljw0voord95hr:
+                apple:
+                    ecpuCores: 4
+                    gpuCores: 8
+                    memoryGb: 16
+                    name: Apple M1
+                    pcpuCores: 4
+                    ramTotalBytes: "17179869184"
+                    swapTotalBytes: "5368709120"
+                args:
+                    - --quick-test
+                    - --latent-dim
+                    - "32"
+                codePath: project/src/train_vae.py
+                codePathLocal: train_vae.py
+                cpu_count: 8
+                cpu_count_logical: 8
+                disk:
+                    /:
+                        total: "245107195904"
+                        used: "230120882176"
+                email: thomasklein18@gmail.com
+                executable: /Users/thomas/.pyenv/versions/zeus/bin/python
+                git:
+                    commit: 590b1fe2ba276b586fb108534f811c931c125c9a
+                    remote: git@github.com:thoklei/research-os.git
+                host: Thomass-MacBook-Pro-3.local
+                memory:
+                    total: "17179869184"
+                os: macOS-15.6.1-arm64-arm-64bit-Mach-O
+                program: /Users/thomas/Projects/hackathon/research-os/project/src/train_vae.py
+                python: CPython 3.13.2
+                root: /Users/thomas/Projects/hackathon/research-os/project/src
+                startedAt: "2025-10-23T11:55:16.818560Z"
+                writerId: lrb0rqe2s8tixqrabrtljw0voord95hr
+        m: []
+        python_version: 3.13.2
+        t:
+            "1":
+                - 1
+            "2":
+                - 1
+            "3":
+                - 1
+                - 2
+                - 15
+                - 61
+            "4": 3.13.2
+            "5": 0.22.2
+            "12": 0.22.2
+            "13": darwin-arm64
+batch_size:
+    value: 128
+beta_schedule:
+    value: linear_warmup
+checkpoint_dir:
+    value: ../experiments/runs/zyrehoyw/checkpoints
+class_weight_method:
+    value: sqrt_inverse
+class_weight_smooth:
+    value: 1
+data_path:
+    value: ../datasets/test-100k/corpus.npz
+device:
+    value: cuda
+early_stopping_min_delta:
+    value: 0
+early_stopping_patience:
+    value: 3
+focal_gamma:
+    value: 2
+gradient_clip_norm:
+    value: 1
+latent_dim:
+    value: 32
+learning_rate:
+    value: 0.0005
+log_every_n_steps:
+    value: 10
+lr_decay_epochs:
+    value: 10
+lr_decay_rate:
+    value: 0.5
+lr_min:
+    value: 1e-05
+lr_schedule_type:
+    value: cosine
+max_epochs:
+    value: 5
+min_kl_per_dim:
+    value: 0.05
+num_colors:
+    value: 10
+num_workers:
+    value: 0
+pin_memory:
+    value: true
+run_id:
+    value: zyrehoyw
+runs_base_dir:
+    value: ../experiments/runs
+save_best_only:
+    value: true
+save_every_n_epochs:
+    value: 1
+seed:
+    value: 42
+target_pixel_accuracy:
+    value: 0.9
+use_augmentation:
+    value: true
+use_class_weights:
+    value: true
+use_focal_loss:
+    value: true
+use_lr_schedule:
+    value: true
+use_wandb:
+    value: true
+validate_every_n_epochs:
+    value: 1
+wandb_entity:
+    value: null
+wandb_project:
+    value: arc-beta-vae
+wandb_run_name:
+    value: null
+wandb_tags:
+    value:
+        - beta-vae
+        - arc
+        - experiment-0.2

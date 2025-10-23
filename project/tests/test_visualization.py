@@ -207,7 +207,8 @@ class TestOutputFormat:
             save_corpus(corpus, filepath)
 
             loaded = load_corpus(filepath)
-            assert loaded['images'].dtype in [np.int32, np.int64]
+            # uint8 is the correct and most efficient dtype for ARC color values (0-9)
+            assert loaded['images'].dtype in [np.uint8, np.int32, np.int64]
 
     def test_corpus_values_in_range(self):
         """All values should be in range [0, 9]."""

@@ -1,0 +1,43 @@
+{
+  "os":  "macOS-15.6.1-arm64-arm-64bit-Mach-O",
+  "python":  "CPython 3.13.2",
+  "startedAt":  "2025-10-23T12:20:39.442821Z",
+  "args":  [
+    "--quick-test",
+    "--overfit-batch",
+    "--latent-dim",
+    "32"
+  ],
+  "program":  "/Users/thomas/Projects/hackathon/research-os/project/src/train_vae.py",
+  "codePath":  "project/src/train_vae.py",
+  "codePathLocal":  "train_vae.py",
+  "git":  {
+    "remote":  "git@github.com:thoklei/research-os.git",
+    "commit":  "590b1fe2ba276b586fb108534f811c931c125c9a"
+  },
+  "email":  "thomasklein18@gmail.com",
+  "root":  "/Users/thomas/Projects/hackathon/research-os/project/src",
+  "host":  "Thomass-MacBook-Pro-3.local",
+  "executable":  "/Users/thomas/.pyenv/versions/zeus/bin/python",
+  "cpu_count":  8,
+  "cpu_count_logical":  8,
+  "disk":  {
+    "/":  {
+      "total":  "245107195904",
+      "used":  "230136107008"
+    }
+  },
+  "memory":  {
+    "total":  "17179869184"
+  },
+  "apple":  {
+    "name":  "Apple M1",
+    "ecpuCores":  4,
+    "pcpuCores":  4,
+    "gpuCores":  8,
+    "memoryGb":  16,
+    "swapTotalBytes":  "5368709120",
+    "ramTotalBytes":  "17179869184"
+  },
+  "writerId":  "zz5trzdoiefhu548q9fqs1a2q4joz2mm"
+}

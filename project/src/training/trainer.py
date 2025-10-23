@@ -24,10 +24,14 @@ from .utils import (
     MetricTracker,
     EarlyStopping,
     compute_pixel_accuracy,
+    compute_per_class_accuracy,
     compute_kl_divergence_per_dim,
     save_checkpoint,
     load_checkpoint,
 )
+
+# Import visualization function for checkpoint visualizations
+from evaluation.visualization import plot_reconstructions
 
 
 class BetaVAETrainer:
@@ -122,13 +126,23 @@ class BetaVAETrainer:
         if not self.use_wandb:
             return
 
-        self.wandb_run = self.wandb.init(
-            project=self.config.wandb_project,
-            entity=self.config.wandb_entity,
-            name=self.config.wandb_run_name,
-            tags=self.config.wandb_tags,
-            config=self.config.to_dict(),
-        )
+        # Check if wandb is already initialized (from train_vae.py)
+        if self.wandb.run is not None:
+            # Use existing run
+            self.wandb_run = self.wandb.run
+            # Update config
+            self.wandb.config.update(self.config.to_dict())
+            print(f"[W&B] Using existing run: {self.wandb_run.id}")
+        else:
+            # Initialize new run
+            self.wandb_run = self.wandb.init(
+                project=self.config.wandb_project,
+                entity=self.config.wandb_entity,
+                name=self.config.wandb_run_name,
+                tags=self.config.wandb_tags,
+                config=self.config.to_dict(),
+            )
+            print(f"[W&B] Initialized new run: {self.wandb_run.id}")
 
         # Watch model
         self.wandb.watch(self.model, log="all", log_freq=100)
@@ -200,6 +214,11 @@ class BetaVAETrainer:
                 'β': f"{beta:.2f}",
             })
 
+            # Compute per-class accuracy for detailed logging
+            per_class_acc = None
+            if self.global_step % self.config.log_every_n_steps == 0:
+                per_class_acc = compute_per_class_accuracy(recon_logits, batch, self.config.num_colors)
+
             # Log to W&B
             if self.use_wandb and self.global_step % self.config.log_every_n_steps == 0:
                 log_dict = {
@@ -212,6 +231,10 @@ class BetaVAETrainer:
                     'train/lr': self.optimizer.param_groups[0]['lr'],
                     'epoch': epoch,
                 }
+                # Add per-class accuracy to W&B
+                if per_class_acc is not None:
+                    for c, acc in enumerate(per_class_acc):
+                        log_dict[f'train/per_class_acc/color_{c}'] = acc
                 self.wandb.log(log_dict, step=self.global_step)
 
             self.global_step += 1
@@ -356,6 +379,22 @@ class BetaVAETrainer:
                     print(f"  Val   - Loss: {val_metrics['loss']:.4f} | "
                           f"Acc: {val_metrics['pixel_acc']:.3f} | "
                           f"KL/dim: {val_metrics['kl_per_dim']:.4f}")
+
+                    # Generate visualization after every epoch
+                    viz_filename = f"reconstructions_epoch_{epoch}.png"
+                    viz_filepath = self.config.checkpoint_dir / viz_filename
+                    try:
+                        plot_reconstructions(
+                            model=self.model,
+                            data_loader=self.train_loader,
+                            device=self.device,
+                            num_samples=10,
+                            save_path=str(viz_filepath),
+                            show=False
+                        )
+                        print(f"  [VISUALIZATION] Saved: {viz_filename}")
+                    except Exception as e:
+                        print(f"  [VISUALIZATION] Warning: Failed to generate visualization: {e}")
 
                     # Check for best model
                     is_best = val_metrics['loss'] < self.best_val_loss

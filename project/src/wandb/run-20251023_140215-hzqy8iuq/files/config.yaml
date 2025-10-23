@@ -1,0 +1,63 @@
+_wandb:
+    value:
+        cli_version: 0.22.2
+        code_path: code/project/src/test_overfit_batch.py
+        e:
+            4gdbxrc7esb09psctk8ifp32np49azht:
+                apple:
+                    ecpuCores: 4
+                    gpuCores: 8
+                    memoryGb: 16
+                    name: Apple M1
+                    pcpuCores: 4
+                    ramTotalBytes: "17179869184"
+                    swapTotalBytes: "5368709120"
+                codePath: project/src/test_overfit_batch.py
+                codePathLocal: test_overfit_batch.py
+                cpu_count: 8
+                cpu_count_logical: 8
+                disk:
+                    /:
+                        total: "245107195904"
+                        used: "230143291392"
+                email: thomasklein18@gmail.com
+                executable: /Users/thomas/.pyenv/versions/zeus/bin/python
+                git:
+                    commit: 590b1fe2ba276b586fb108534f811c931c125c9a
+                    remote: git@github.com:thoklei/research-os.git
+                host: Thomass-MacBook-Pro-3.local
+                memory:
+                    total: "17179869184"
+                os: macOS-15.6.1-arm64-arm-64bit-Mach-O
+                program: /Users/thomas/Projects/hackathon/research-os/project/src/test_overfit_batch.py
+                python: CPython 3.13.2
+                root: /Users/thomas/Projects/hackathon/research-os/project/src
+                startedAt: "2025-10-23T12:02:15.782248Z"
+                writerId: 4gdbxrc7esb09psctk8ifp32np49azht
+        m: []
+        python_version: 3.13.2
+        t:
+            "1":
+                - 1
+            "2":
+                - 1
+            "3":
+                - 2
+                - 13
+                - 15
+                - 16
+                - 61
+            "4": 3.13.2
+            "5": 0.22.2
+            "12": 0.22.2
+            "13": darwin-arm64
+batch_size:
+    value: 32
+iters_per_epoch:
+    value: 50
+latent_dim:
+    value: 32
+learning_rate:
+    value: 0.001
+num_epochs:
+    value: 10

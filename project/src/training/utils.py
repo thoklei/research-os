@@ -16,11 +16,10 @@ def get_beta_schedule(epoch: int, schedule_type: str = "linear_warmup") -> float
     """
     Get β value for current epoch based on annealing schedule.
 
-    Schedule (corrected to prevent premature posterior collapse):
-    - Epochs 1-5:   β = 0.0         (free reconstruction learning)
-    - Epochs 6-15:  β = 0.0 → 1.0   (gradual KL penalty introduction)
-    - Epochs 16-35: β = 1.0 → 2.0   (encourage disentanglement)
-    - Epochs 36+:   β = 2.0         (fixed)
+    Conservative schedule to prevent premature posterior collapse:
+    - Epochs 1-10:  β = 0.00         (free reconstruction learning)
+    - Epochs 11-60: β = 0.00 → 0.50  (very gradual warmup over 50 epochs)
+    - Epochs 61+:   β = 0.50         (cap at 0.5)
 
     Args:
         epoch (int): Current epoch (1-indexed)
@@ -30,33 +29,29 @@ def get_beta_schedule(epoch: int, schedule_type: str = "linear_warmup") -> float
         float: β value for current epoch
     """
     if schedule_type == "linear_warmup":
-        if epoch <= 5:
-            # Free reconstruction for first 5 epochs (β=0)
+        if epoch <= 10:
+            # Free reconstruction for first 10 epochs (β=0)
             # Prevents premature posterior collapse to prior N(0,1)
             return 0.0
-        elif epoch <= 15:
-            # Gradual warm-up from 0.0 to 1.0 over epochs 6-15
-            return (epoch - 5) / 10.0
-        elif epoch <= 35:
-            # Linear increase from 1.0 to 2.0 over epochs 16-35
-            return 1.0 + (epoch - 15) / 20.0
+        elif epoch <= 60:
+            # Very gradual warm-up from 0.0 to 0.5 over epochs 11-60 (50 epochs)
+            # Slow ramp prevents KL penalty from overwhelming reconstruction
+            return (epoch - 10) / 100.0
         else:
-            # Fixed at 2.0
-            return 2.0
+            # Cap at 0.5 (conservative for ARC grids)
+            return 0.5
     elif schedule_type == "constant":
         # For ablation studies
         return 1.0
     elif schedule_type == "aggressive":
         # Faster warm-up (for experiments)
-        # Still start at 0.0 to avoid collapse
-        if epoch <= 3:
+        # Still conservative to avoid collapse, just faster than default
+        if epoch <= 5:
             return 0.0
-        elif epoch <= 8:
-            return (epoch - 3) / 5.0
-        elif epoch <= 23:
-            return 1.0 + (epoch - 8) / 15.0
+        elif epoch <= 30:
+            return (epoch - 5) / 50.0  # Reach 0.5 at epoch 30
         else:
-            return 2.0
+            return 0.5
     else:
         raise ValueError(f"Unknown schedule type: {schedule_type}")
 
@@ -244,6 +239,37 @@ def compute_pixel_accuracy(pred_logits: torch.Tensor, target: torch.Tensor) -> f
     accuracy = correct.mean().item()
 
     return accuracy
+
+
+def compute_per_class_accuracy(pred_logits: torch.Tensor, target: torch.Tensor, num_classes: int = 10) -> List[float]:
+    """
+    Compute per-class pixel-wise accuracy for reconstruction.
+
+    Args:
+        pred_logits: Predicted logits with shape (batch, num_colors, H, W)
+        target: Ground truth labels with shape (batch, H, W)
+        num_classes: Number of color classes (default: 10)
+
+    Returns:
+        List[float]: Per-class accuracy in [0, 1] for each class
+    """
+    # Get predicted labels
+    pred_labels = torch.argmax(pred_logits, dim=1)  # (batch, H, W)
+
+    per_class_acc = []
+    for c in range(num_classes):
+        # Find all pixels of class c in the target
+        mask = (target == c)
+        if mask.sum() > 0:
+            # Compute accuracy for this class
+            correct = (pred_labels[mask] == target[mask]).float()
+            acc = correct.mean().item()
+        else:
+            # No pixels of this class in batch
+            acc = 0.0
+        per_class_acc.append(acc)
+
+    return per_class_acc
 
 
 def compute_kl_divergence_per_dim(mu: torch.Tensor, logvar: torch.Tensor) -> float:

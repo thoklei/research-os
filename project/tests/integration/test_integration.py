@@ -100,7 +100,7 @@ class TestCLIIntegration:
     def test_cli_help(self):
         """CLI should display help message."""
         result = subprocess.run(
-            ['python', 'generate_dataset.py', '--help'],
+            ['python', 'src/generate_dataset.py', '--help'],
             capture_output=True,
             text=True
         )
@@ -113,7 +113,7 @@ class TestCLIIntegration:
     def test_cli_invalid_num_images(self):
         """CLI should reject invalid num-images."""
         result = subprocess.run(
-            ['python', 'generate_dataset.py', '--num-images', '0'],
+            ['python', 'src/generate_dataset.py', '--num-images', '0'],
             capture_output=True,
             text=True,
             input='n\n'  # Answer no to confirmation
@@ -128,7 +128,7 @@ class TestCLIIntegration:
 
             result = subprocess.run(
                 [
-                    'python', 'generate_dataset.py',
+                    'python', 'src/generate_dataset.py',
                     '--num-images', '10',
                     '--output-dir', output_dir,
                     '--seed', '999'
@@ -326,7 +326,7 @@ class TestVisualValidationIntegration:
             # Run CLI
             result = subprocess.run(
                 [
-                    'python', 'validate_visual.py',
+                    'python', 'src/validate_visual.py',
                     '--corpus-path', corpus_path,
                     '--metadata-path', metadata_path,
                     '--output', output_path,

@@ -1,0 +1,93 @@
+
+[W&B] Initialized: hzqy8iuq
+
+[OUTPUT] Results will be saved to: ../experiments/overfit-tests/hzqy8iuq
+
+[SETUP] Device: cpu
+
+[DATA] Loading dataset...
+Loaded 80000 images from split 'train'
+Loaded 10000 images from split 'val'
+Loaded 10000 images from split 'test'
+[DATA] Single batch shape: torch.Size([32, 16, 16])
+[DATA] Batch size: 32
+
+[MODEL] Creating BetaVAE (latent_dim=32)
+[MODEL] Parameters: 801,034
+
+[TRAIN] Starting overfitting test (10 epochs, 50 iters/epoch)...
+======================================================================
+
+Epoch 1/10
+----------------------------------------------------------------------
+  Loss: 0.5778 | Recon: 0.5723 | KL: 0.0055 | Acc: 0.8680 | KL/dim: 0.0002
+[SAVE] Reconstructions saved to: ../experiments/overfit-tests/hzqy8iuq/overfit_epoch_1.png
+  [VIZ] Saved: overfit_epoch_1.png
+
+Epoch 2/10
+----------------------------------------------------------------------
+  Loss: 0.2355 | Recon: 0.2355 | KL: 0.0000 | Acc: 0.9352 | KL/dim: 0.0000
+[SAVE] Reconstructions saved to: ../experiments/overfit-tests/hzqy8iuq/overfit_epoch_2.png
+  [VIZ] Saved: overfit_epoch_2.png
+
+Epoch 3/10
+----------------------------------------------------------------------
+  Loss: 0.2140 | Recon: 0.2140 | KL: 0.0000 | Acc: 0.9352 | KL/dim: 0.0000
+[SAVE] Reconstructions saved to: ../experiments/overfit-tests/hzqy8iuq/overfit_epoch_3.png
+  [VIZ] Saved: overfit_epoch_3.png
+
+Epoch 4/10
+----------------------------------------------------------------------
+  Loss: 0.1916 | Recon: 0.1916 | KL: 0.0000 | Acc: 0.9352 | KL/dim: 0.0000
+[SAVE] Reconstructions saved to: ../experiments/overfit-tests/hzqy8iuq/overfit_epoch_4.png
+  [VIZ] Saved: overfit_epoch_4.png
+
+Epoch 5/10
+----------------------------------------------------------------------
+  Loss: 0.1695 | Recon: 0.1695 | KL: 0.0000 | Acc: 0.9352 | KL/dim: 0.0000
+[SAVE] Reconstructions saved to: ../experiments/overfit-tests/hzqy8iuq/overfit_epoch_5.png
+  [VIZ] Saved: overfit_epoch_5.png
+
+Epoch 6/10
+----------------------------------------------------------------------
+  Loss: 0.1519 | Recon: 0.1519 | KL: 0.0000 | Acc: 0.9352 | KL/dim: 0.0000
+[SAVE] Reconstructions saved to: ../experiments/overfit-tests/hzqy8iuq/overfit_epoch_6.png
+  [VIZ] Saved: overfit_epoch_6.png
+
+Epoch 7/10
+----------------------------------------------------------------------
+  Loss: 0.1399 | Recon: 0.1399 | KL: 0.0000 | Acc: 0.9352 | KL/dim: 0.0000
+[SAVE] Reconstructions saved to: ../experiments/overfit-tests/hzqy8iuq/overfit_epoch_7.png
+  [VIZ] Saved: overfit_epoch_7.png
+
+Epoch 8/10
+----------------------------------------------------------------------
+  Loss: 0.1344 | Recon: 0.1344 | KL: 0.0000 | Acc: 0.9352 | KL/dim: 0.0000
+[SAVE] Reconstructions saved to: ../experiments/overfit-tests/hzqy8iuq/overfit_epoch_8.png
+  [VIZ] Saved: overfit_epoch_8.png
+
+Epoch 9/10
+----------------------------------------------------------------------
+  Loss: 0.1334 | Recon: 0.1334 | KL: 0.0000 | Acc: 0.9352 | KL/dim: 0.0000
+[SAVE] Reconstructions saved to: ../experiments/overfit-tests/hzqy8iuq/overfit_epoch_9.png
+  [VIZ] Saved: overfit_epoch_9.png
+
+Epoch 10/10
+----------------------------------------------------------------------
+  Loss: 0.1322 | Recon: 0.1322 | KL: 0.0000 | Acc: 0.9352 | KL/dim: 0.0000
+[SAVE] Reconstructions saved to: ../experiments/overfit-tests/hzqy8iuq/overfit_epoch_10.png
+  [VIZ] Saved: overfit_epoch_10.png
+======================================================================
+
+[RESULTS]
+  Final Loss:         0.1317
+  Reconstruction Loss: 0.1317
+  KL Loss:            0.0000
+  Pixel Accuracy:     0.9352 (93.52%)
+  KL per dimension:   0.0000
+
+  Per-sample accuracy stats:
+    Min:  0.8594
+    Max:  0.9922
+    Mean: 0.9352
+    Std:  0.0347

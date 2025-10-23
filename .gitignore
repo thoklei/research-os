@@ -43,3 +43,8 @@ Thumbs.db
 
 *.png
 *.pth
+
+# ignore run dir
+project/experiments/runs/
+
+project/*.key

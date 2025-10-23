@@ -104,6 +104,12 @@ class Encoder(nn.Module):
         mu = self.fc_mu(h)  # (batch, latent_dim)
         logvar = self.fc_logvar(h)  # (batch, latent_dim)
 
+        # Clamp mu and logvar to prevent numerical instability and KL explosion
+        # μ ∈ [-5, 5] - reasonable range for latent space means
+        # logvar ∈ [-20, 2] → variance ∈ [2e-9, 7.4]
+        mu = torch.clamp(mu, min=-5.0, max=5.0)
+        logvar = torch.clamp(logvar, min=-20.0, max=2.0)
+
         return mu, logvar
 
     def encode(self, x):
