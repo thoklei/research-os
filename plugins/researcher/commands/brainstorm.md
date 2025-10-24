@@ -1,0 +1,1 @@
+Use the @research-strategist agent to deeply investigate and reflect on the following aspect: $ARGUMENTS
