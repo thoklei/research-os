@@ -92,7 +92,13 @@ class BetaVAETrainer:
                 )
 
         # β-annealing scheduler
-        self.beta_scheduler = BetaScheduler(schedule_type=config.beta_schedule)
+        self.beta_scheduler = BetaScheduler(
+            schedule_type=config.beta_schedule,
+            max_beta=config.beta_max,
+            warmup_epochs=config.beta_warmup_epochs,
+            ramp_epochs=config.beta_ramp_epochs,
+            cycle_length=config.beta_cycle_length
+        )
 
         # Early stopping
         self.early_stopping = EarlyStopping(
@@ -144,8 +150,10 @@ class BetaVAETrainer:
             )
             print(f"[W&B] Initialized new run: {self.wandb_run.id}")
 
-        # Watch model
-        self.wandb.watch(self.model, log="all", log_freq=100)
+        # Watch model (use gradients to avoid parameter logging hook issues)
+        # Note: This only affects model parameter/gradient logging
+        # All losses, accuracies, KL metrics are logged separately via wandb.log()
+        self.wandb.watch(self.model, log="gradients", log_freq=100)
 
     def train_epoch(self, epoch: int) -> Dict[str, float]:
         """
@@ -178,7 +186,9 @@ class BetaVAETrainer:
             recon_logits, mu, logvar = self.model(batch)
 
             # Compute loss
-            loss_dict = self.model.loss_function(recon_logits, batch, mu, logvar, beta=beta)
+            # Extract free_bits from config if enabled, otherwise use 0.0
+            free_bits = self.config.free_bits_lambda if self.config.use_free_bits else 0.0
+            loss_dict = self.model.loss_function(recon_logits, batch, mu, logvar, beta=beta, free_bits=free_bits)
 
             # Backward pass
             self.optimizer.zero_grad()
@@ -231,6 +241,18 @@ class BetaVAETrainer:
                     'train/lr': self.optimizer.param_groups[0]['lr'],
                     'epoch': epoch,
                 }
+
+                # Add per-dimension KL logging (from loss_dict)
+                if 'kl_per_dim' in loss_dict:
+                    kl_per_dim_tensor = loss_dict['kl_per_dim']  # Shape: (latent_dim,)
+                    # Log each dimension individually
+                    for dim_idx in range(kl_per_dim_tensor.shape[0]):
+                        log_dict[f'train/kl_per_dim/dim_{dim_idx}'] = kl_per_dim_tensor[dim_idx].item()
+                    # Log aggregate statistics
+                    log_dict['train/kl_per_dim/min'] = kl_per_dim_tensor.min().item()
+                    log_dict['train/kl_per_dim/max'] = kl_per_dim_tensor.max().item()
+                    log_dict['train/kl_per_dim/mean'] = kl_per_dim_tensor.mean().item()
+
                 # Add per-class accuracy to W&B
                 if per_class_acc is not None:
                     for c, acc in enumerate(per_class_acc):
@@ -273,7 +295,9 @@ class BetaVAETrainer:
             recon_logits, mu, logvar = self.model(batch)
 
             # Compute loss
-            loss_dict = self.model.loss_function(recon_logits, batch, mu, logvar, beta=beta)
+            # Extract free_bits from config if enabled, otherwise use 0.0
+            free_bits = self.config.free_bits_lambda if self.config.use_free_bits else 0.0
+            loss_dict = self.model.loss_function(recon_logits, batch, mu, logvar, beta=beta, free_bits=free_bits)
 
             # Compute additional metrics
             pixel_acc = compute_pixel_accuracy(recon_logits, batch)
@@ -308,6 +332,12 @@ class BetaVAETrainer:
                 'val/kl_per_dim': val_metrics['kl_per_dim'],
                 'epoch': epoch,
             }
+
+            # Add per-dimension KL logging (from loss_dict if available from last batch)
+            # Note: We'll use the aggregate from val_metrics for now, but ideally
+            # we would accumulate per-dimension stats across all validation batches.
+            # For now, log the aggregate metric only.
+
             self.wandb.log(log_dict, step=self.global_step)
 
         return val_metrics
@@ -430,8 +460,6 @@ class BetaVAETrainer:
         print(f"  Best val loss: {self.best_val_loss:.4f}")
         print("=" * 70)
 
-        # Finish W&B
-        if self.use_wandb and self.wandb_run is not None:
-            self.wandb_run.finish()
+        # Don't finish W&B here - let train_vae.py finish it after test evaluation
 
         return self.best_val_loss

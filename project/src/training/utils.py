@@ -12,37 +12,67 @@ import numpy as np
 from typing import Dict, List, Optional
 
 
-def get_beta_schedule(epoch: int, schedule_type: str = "linear_warmup") -> float:
+def get_beta_schedule(
+    epoch: int,
+    schedule_type: str = "linear_warmup",
+    max_beta: float = 0.5,
+    warmup_epochs: int = 10,
+    ramp_epochs: int = 50,
+    cycle_length: int = 20
+) -> float:
     """
     Get β value for current epoch based on annealing schedule.
 
-    Conservative schedule to prevent premature posterior collapse:
-    - Epochs 1-10:  β = 0.00         (free reconstruction learning)
-    - Epochs 11-60: β = 0.00 → 0.50  (very gradual warmup over 50 epochs)
-    - Epochs 61+:   β = 0.50         (cap at 0.5)
+    Supports multiple schedule types with configurable parameters:
+    - linear_warmup: Configurable gradual warmup (default)
+    - ultra_conservative: Same as linear_warmup (kept for config clarity)
+    - cyclical: Alternates between reconstruction and regularization
+    - constant: Fixed beta=1.0 (for ablation studies)
+    - aggressive: Faster warmup (for experiments)
 
     Args:
         epoch (int): Current epoch (1-indexed)
-        schedule_type (str): Type of schedule (default: "linear_warmup")
+        schedule_type (str): Type of schedule
+        max_beta (float): Maximum beta value to reach (default: 0.5)
+        warmup_epochs (int): Epochs to stay at beta=0 (default: 10)
+        ramp_epochs (int): Epochs to ramp from 0 to max_beta (default: 50)
+        cycle_length (int): For cyclical: epochs per cycle (default: 20)
 
     Returns:
         float: β value for current epoch
     """
-    if schedule_type == "linear_warmup":
-        if epoch <= 10:
-            # Free reconstruction for first 10 epochs (β=0)
+    if schedule_type == "linear_warmup" or schedule_type == "ultra_conservative":
+        if epoch <= warmup_epochs:
+            # Free reconstruction for warmup epochs (β=0)
             # Prevents premature posterior collapse to prior N(0,1)
             return 0.0
-        elif epoch <= 60:
-            # Very gradual warm-up from 0.0 to 0.5 over epochs 11-60 (50 epochs)
+        elif epoch <= warmup_epochs + ramp_epochs:
+            # Gradual warm-up from 0.0 to max_beta
             # Slow ramp prevents KL penalty from overwhelming reconstruction
-            return (epoch - 10) / 100.0
+            progress = (epoch - warmup_epochs) / ramp_epochs
+            return progress * max_beta
         else:
-            # Cap at 0.5 (conservative for ARC grids)
-            return 0.5
+            # Cap at max_beta
+            return max_beta
+
+    elif schedule_type == "cyclical":
+        # Cyclical annealing: alternates between reconstruction and regularization
+        # Gives model repeated opportunities to recover from collapse
+        cycle_position = epoch % cycle_length
+
+        if cycle_position < cycle_length / 2:
+            # Ascending phase: 0 -> max_beta
+            progress = cycle_position / (cycle_length / 2)
+            return progress * max_beta
+        else:
+            # Descending phase: max_beta -> 0
+            progress = (cycle_length - cycle_position) / (cycle_length / 2)
+            return progress * max_beta
+
     elif schedule_type == "constant":
-        # For ablation studies
+        # For ablation studies - fixed beta
         return 1.0
+
     elif schedule_type == "aggressive":
         # Faster warm-up (for experiments)
         # Still conservative to avoid collapse, just faster than default
@@ -52,6 +82,7 @@ def get_beta_schedule(epoch: int, schedule_type: str = "linear_warmup") -> float
             return (epoch - 5) / 50.0  # Reach 0.5 at epoch 30
         else:
             return 0.5
+
     else:
         raise ValueError(f"Unknown schedule type: {schedule_type}")
 
@@ -62,10 +93,25 @@ class BetaScheduler:
 
     Args:
         schedule_type (str): Type of schedule (default: "linear_warmup")
+        max_beta (float): Maximum beta value (default: 0.5)
+        warmup_epochs (int): Epochs at beta=0 (default: 10)
+        ramp_epochs (int): Epochs to ramp from 0 to max_beta (default: 50)
+        cycle_length (int): For cyclical schedule (default: 20)
     """
 
-    def __init__(self, schedule_type: str = "linear_warmup"):
+    def __init__(
+        self,
+        schedule_type: str = "linear_warmup",
+        max_beta: float = 0.5,
+        warmup_epochs: int = 10,
+        ramp_epochs: int = 50,
+        cycle_length: int = 20
+    ):
         self.schedule_type = schedule_type
+        self.max_beta = max_beta
+        self.warmup_epochs = warmup_epochs
+        self.ramp_epochs = ramp_epochs
+        self.cycle_length = cycle_length
         self.current_epoch = 0
         self.beta_history: List[float] = []
 
@@ -80,13 +126,27 @@ class BetaScheduler:
             float: β value
         """
         self.current_epoch = epoch
-        beta = get_beta_schedule(epoch, self.schedule_type)
+        beta = get_beta_schedule(
+            epoch,
+            self.schedule_type,
+            max_beta=self.max_beta,
+            warmup_epochs=self.warmup_epochs,
+            ramp_epochs=self.ramp_epochs,
+            cycle_length=self.cycle_length
+        )
         self.beta_history.append(beta)
         return beta
 
     def get_current_beta(self) -> float:
         """Get β value for current epoch."""
-        return get_beta_schedule(self.current_epoch, self.schedule_type)
+        return get_beta_schedule(
+            self.current_epoch,
+            self.schedule_type,
+            max_beta=self.max_beta,
+            warmup_epochs=self.warmup_epochs,
+            ramp_epochs=self.ramp_epochs,
+            cycle_length=self.cycle_length
+        )
 
     def get_history(self) -> List[float]:
         """Get history of β values."""

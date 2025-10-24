@@ -104,9 +104,9 @@ class BetaVAE(nn.Module):
 
         return recon_logits, mu, logvar
 
-    def loss_function(self, recon_logits, x, mu, logvar, beta=1.0):
+    def loss_function(self, recon_logits, x, mu, logvar, beta=1.0, free_bits=0.0):
         """
-        Compute β-VAE loss.
+        Compute β-VAE loss with optional free bits mechanism.
 
         Args:
             recon_logits (torch.Tensor): Reconstruction logits (batch, num_colors, 16, 16)
@@ -114,12 +114,16 @@ class BetaVAE(nn.Module):
             mu (torch.Tensor): Latent mean (batch, latent_dim)
             logvar (torch.Tensor): Latent log variance (batch, latent_dim)
             beta (float): β parameter for KL weighting (default: 1.0)
+            free_bits (float): Minimum KL per dimension in nats (default: 0.0).
+                              If > 0, prevents posterior collapse by ensuring each
+                              dimension carries at least this much information.
 
         Returns:
             dict: Dictionary containing:
                 - 'loss': Total loss (scalar)
                 - 'recon_loss': Reconstruction loss (scalar)
                 - 'kl_loss': KL divergence loss (scalar)
+                - 'kl_per_dim': Unclamped KL per dimension (latent_dim,) for monitoring
         """
         # Reconstruction loss (Focal Loss or CrossEntropy)
         if self.use_focal_loss:
@@ -140,9 +144,23 @@ class BetaVAE(nn.Module):
                     reduction='mean'
                 )
 
-        # KL divergence: -0.5 * sum(1 + log(σ²) - μ² - σ²)
-        kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        kl_loss = kl_loss / x.size(0)  # Average over batch
+        # KL divergence per dimension: -0.5 * (1 + log(σ²) - μ² - σ²)
+        # Shape: (batch, latent_dim)
+        kl_per_dim = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp())
+
+        # Store unclamped KL per dimension for monitoring (average over batch)
+        kl_per_dim_actual = kl_per_dim.mean(dim=0)  # (latent_dim,)
+
+        # Apply free bits if specified
+        if free_bits > 0:
+            # Clamp each dimension to minimum free_bits
+            # This prevents any dimension from collapsing below the threshold
+            kl_per_dim_clamped = torch.clamp(kl_per_dim, min=free_bits)
+            # Sum over dimensions, mean over batch
+            kl_loss = kl_per_dim_clamped.sum(dim=1).mean()
+        else:
+            # Standard VAE: no clamping
+            kl_loss = kl_per_dim.sum(dim=1).mean()
 
         # Total loss
         total_loss = recon_loss + beta * kl_loss
@@ -150,7 +168,8 @@ class BetaVAE(nn.Module):
         return {
             'loss': total_loss,
             'recon_loss': recon_loss,
-            'kl_loss': kl_loss
+            'kl_loss': kl_loss,
+            'kl_per_dim': kl_per_dim_actual  # For monitoring (latent_dim,)
         }
 
     def sample(self, num_samples, device='cpu'):

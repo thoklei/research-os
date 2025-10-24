@@ -5,6 +5,16 @@ Usage:
     python train_vae.py                    # Train with default config
     python train_vae.py --quick-test       # Quick test run
     python train_vae.py --config path.json # Train with custom config
+
+Beta Scheduling Examples:
+    # Ultra-conservative schedule with free bits (disable early stopping to see full beta ramp)
+    python train_vae.py --beta-schedule ultra_conservative --beta-max 0.1 --free-bits 0.3 --no-early-stopping
+
+    # Cyclical schedule
+    python train_vae.py --beta-schedule cyclical --beta-max 0.1 --beta-cycle-length 20
+
+    # Custom linear warmup
+    python train_vae.py --beta-schedule linear_warmup --beta-max 0.3 --beta-warmup-epochs 20 --beta-ramp-epochs 60
 """
 
 import argparse
@@ -116,6 +126,54 @@ def main():
         help='Run overfitting test on a single batch (sanity check)'
     )
 
+    # Beta scheduling arguments
+    parser.add_argument(
+        '--beta-schedule',
+        type=str,
+        default=None,
+        choices=['linear_warmup', 'ultra_conservative', 'cyclical', 'constant', 'aggressive'],
+        help='Beta annealing schedule type'
+    )
+    parser.add_argument(
+        '--beta-max',
+        type=float,
+        default=None,
+        help='Maximum beta value (default: 0.5)'
+    )
+    parser.add_argument(
+        '--beta-warmup-epochs',
+        type=int,
+        default=None,
+        help='Number of epochs to stay at beta=0 (default: 10)'
+    )
+    parser.add_argument(
+        '--beta-ramp-epochs',
+        type=int,
+        default=None,
+        help='Number of epochs to ramp from 0 to max_beta (default: 50)'
+    )
+    parser.add_argument(
+        '--beta-cycle-length',
+        type=int,
+        default=None,
+        help='Cycle length for cyclical schedule (default: 20)'
+    )
+
+    # Free bits arguments
+    parser.add_argument(
+        '--free-bits',
+        type=float,
+        default=None,
+        help='Free bits lambda (minimum KL per dimension in nats). Automatically enables use_free_bits if > 0'
+    )
+
+    # Training control arguments
+    parser.add_argument(
+        '--no-early-stopping',
+        action='store_true',
+        help='Disable early stopping (train for full max_epochs)'
+    )
+
     args = parser.parse_args()
 
     # Initialize wandb early to get run ID for folder naming
@@ -173,6 +231,33 @@ def main():
 
     if args.latent_dim is not None:
         config.latent_dim = args.latent_dim
+
+    # Beta scheduling overrides
+    if args.beta_schedule is not None:
+        config.beta_schedule = args.beta_schedule
+
+    if args.beta_max is not None:
+        config.beta_max = args.beta_max
+
+    if args.beta_warmup_epochs is not None:
+        config.beta_warmup_epochs = args.beta_warmup_epochs
+
+    if args.beta_ramp_epochs is not None:
+        config.beta_ramp_epochs = args.beta_ramp_epochs
+
+    if args.beta_cycle_length is not None:
+        config.beta_cycle_length = args.beta_cycle_length
+
+    # Free bits override
+    if args.free_bits is not None:
+        config.free_bits_lambda = args.free_bits
+        # Automatically enable use_free_bits if free_bits > 0
+        if args.free_bits > 0:
+            config.use_free_bits = True
+
+    # Early stopping override
+    if args.no_early_stopping:
+        config.early_stopping_patience = config.max_epochs + 1  # Effectively disable
 
     # Set up logging to file
     log_path = config.run_manager.get_log_path("training.log")
@@ -406,6 +491,16 @@ def main():
                 print(f"   KL/dim = {test_metrics['kl_per_dim']:.4f} < {config.min_kl_per_dim}")
             else:
                 print(f"\n[OK] Latent space is active (KL/dim = {test_metrics['kl_per_dim']:.4f})")
+
+        # Finish W&B logging after all evaluation is complete
+        if config.use_wandb:
+            try:
+                import wandb
+                if wandb.run is not None:
+                    wandb.finish()
+                    print("\n[W&B] Run finished and synced")
+            except ImportError:
+                pass
 
         print("\n" + "=" * 70)
         print("Training complete!")

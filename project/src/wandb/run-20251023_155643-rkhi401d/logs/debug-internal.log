@@ -1,0 +1,13 @@
+{"time":"2025-10-23T15:56:43.438602+02:00","level":"INFO","msg":"stream: starting","core version":"0.22.2"}
+{"time":"2025-10-23T15:56:43.774081+02:00","level":"INFO","msg":"stream: created new stream","id":"rkhi401d"}
+{"time":"2025-10-23T15:56:43.77454+02:00","level":"INFO","msg":"handler: started","stream_id":"rkhi401d"}
+{"time":"2025-10-23T15:56:43.774655+02:00","level":"INFO","msg":"stream: started","id":"rkhi401d"}
+{"time":"2025-10-23T15:56:43.774854+02:00","level":"INFO","msg":"writer: started","stream_id":"rkhi401d"}
+{"time":"2025-10-23T15:56:43.775033+02:00","level":"INFO","msg":"sender: started","stream_id":"rkhi401d"}
+{"time":"2025-10-23T15:56:44.210934+02:00","level":"ERROR","msg":"git repo not found","error":"repository does not exist"}
+{"time":"2025-10-23T16:19:25.111998+02:00","level":"INFO","msg":"handler: operation stats","stats":{}}
+{"time":"2025-10-23T16:19:26.025885+02:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-10-23T16:19:26.369325+02:00","level":"INFO","msg":"stream: closing","id":"rkhi401d"}
+{"time":"2025-10-23T16:19:26.370449+02:00","level":"INFO","msg":"handler: closed","stream_id":"rkhi401d"}
+{"time":"2025-10-23T16:19:26.370975+02:00","level":"INFO","msg":"sender: closed","stream_id":"rkhi401d"}
+{"time":"2025-10-23T16:19:26.371022+02:00","level":"INFO","msg":"stream: closed","id":"rkhi401d"}

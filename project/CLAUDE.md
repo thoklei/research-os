@@ -14,10 +14,12 @@ If one were to simply train a VAE on the dataset, one would run into the problem
     2. Class weighting, to address the class imbalance problem (we have way more black pixels than non-black pixels)
 
 So whenever we see an accuracy of 93% we need to be suspicious because this probably just means that the model has collapsed again.
- 
-We are currently stuck at the following problem: We want to validate our model's capacity by first overfitting a single batch. However, this part is not working properly, due to some weird mode collapse issue: When overfitting a single batch, the reconstructed images are just black, because the model learns the suboptimal solution of just predicting the most likely pixel value. We encountered this problem before, in the normal training, where we got around it by adding a class weighting term to the loss. In principle this should work for the single batch we're overfitting as well, but in practice it does not. 
 
+We have now established a beta schedule that, unlike earlier attempts, does not immediately collapse to black images, so in principle the approach might work.
+However, we want to first make sure that our model can in principle represent the dataset (without beta). So next, we will create a slightly simpler version of the dataset, without the blob objects (i.e. only a handful of parameterized shapes of 10 different colors). 
 
 For running code in the context of this project, use the zeus environment from pyenv like so:
 
 pyenv activate zeus && python file.py
+
+Whenever you write tests, put them in the appropriate location in the tests directory.

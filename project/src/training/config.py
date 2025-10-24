@@ -41,7 +41,15 @@ class TrainingConfig:
     gradient_clip_norm: float = 1.0  # Gradient clipping for training stability
 
     # β-annealing schedule
-    beta_schedule: str = "linear_warmup"  # Options: linear_warmup, constant, aggressive
+    beta_schedule: str = "linear_warmup"  # Options: linear_warmup, constant, aggressive, ultra_conservative, cyclical
+    beta_max: float = 0.5  # Maximum beta value
+    beta_warmup_epochs: int = 10  # Epochs to stay at beta=0
+    beta_ramp_epochs: int = 50  # Epochs to ramp from 0 to max_beta
+    beta_cycle_length: int = 20  # For cyclical schedule: epochs per cycle
+
+    # Free bits mechanism (prevents posterior collapse)
+    use_free_bits: bool = False  # Enable free bits mechanism
+    free_bits_lambda: float = 0.0  # Minimum KL per dimension (nats)
 
     # Learning rate schedule
     use_lr_schedule: bool = True
@@ -181,4 +189,49 @@ def get_ablation_config(beta_schedule: str = "constant") -> TrainingConfig:
     return TrainingConfig(
         beta_schedule=beta_schedule,
         wandb_tags=["beta-vae", "arc", "ablation", f"beta-{beta_schedule}"],
+    )
+
+
+def get_ultra_conservative_config(run_id: Optional[str] = None) -> TrainingConfig:
+    """
+    Get ultra-conservative beta schedule config to prevent posterior collapse.
+
+    This configuration uses:
+    - Longer warmup (20 epochs at beta=0)
+    - Slower ramp (60 epochs to reach max_beta)
+    - Lower maximum beta (0.1 instead of 0.5)
+    - Free bits enabled (0.3 nats/dim)
+    - Extended training (100 epochs for slow schedule)
+    """
+    return TrainingConfig(
+        run_id=run_id,
+        beta_schedule="ultra_conservative",
+        beta_max=0.1,
+        beta_warmup_epochs=20,
+        beta_ramp_epochs=60,
+        use_free_bits=True,
+        free_bits_lambda=0.3,
+        max_epochs=100,  # Longer training for slow schedule
+        wandb_tags=["beta-vae", "arc", "ultra-conservative", "free-bits"],
+    )
+
+
+def get_cyclical_config(run_id: Optional[str] = None) -> TrainingConfig:
+    """
+    Get cyclical beta schedule config for alternating reconstruction/regularization.
+
+    This configuration uses:
+    - Cyclical beta schedule (20 epoch cycles)
+    - Conservative maximum beta (0.1)
+    - Free bits enabled (0.3 nats/dim)
+    - Gives model repeated opportunities to recover from collapse
+    """
+    return TrainingConfig(
+        run_id=run_id,
+        beta_schedule="cyclical",
+        beta_max=0.1,
+        beta_cycle_length=20,
+        use_free_bits=True,
+        free_bits_lambda=0.3,
+        wandb_tags=["beta-vae", "arc", "cyclical", "free-bits"],
     )
